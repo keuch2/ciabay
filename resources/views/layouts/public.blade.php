@@ -122,24 +122,12 @@
     @if($trackingBody)
         {!! $trackingBody !!}
     @endif
-    @php
-        $gaId = \App\Models\Setting::get('google_analytics_id');
-        $__isDraftPreview = !empty($isDraft ?? null);
-    @endphp
+
+    @php $__isDraftPreview = !empty($isDraft ?? null); @endphp
     @if($__isDraftPreview)
         <div style="position:sticky;top:0;z-index:9999;background:#f59e0b;color:#1a1a1a;font-weight:700;text-align:center;padding:0.6rem 1rem;font-size:0.9rem;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
             Vista previa — Contenido en borrador / inactivo (solo visible para administradores)
         </div>
-    @endif
-    @if($gaId)
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '{{ $gaId }}');
-    </script>
     @endif
 
     <!-- Main Header -->
@@ -311,5 +299,10 @@
     <!-- Scripts -->
     <script src="{{ asset('assets/js/main.js') }}"></script>
     @stack('scripts')
+
+    @php $trackingFooter = \App\Models\Setting::get('tracking_footer_html'); @endphp
+    @if($trackingFooter)
+        {!! $trackingFooter !!}
+    @endif
 </body>
 </html>

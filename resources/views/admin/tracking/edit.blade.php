@@ -15,23 +15,24 @@
         <p>El contenido de estos campos se inserta tal cual en el HTML del sitio público. Solo pegá códigos oficiales de Google, Meta u otros proveedores que conozcas. Código malicioso pegado acá compromete a todos los visitantes del sitio.</p>
     </div>
 
-    {{-- Google Analytics shortcut --}}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-1">Google Analytics (atajo)</h3>
-        <p class="text-xs text-gray-500 mb-4">Si solo querés cargar Google Analytics, pegá acá el Measurement ID (ej: <code class="bg-gray-100 px-1 rounded">G-XXXXXXXXXX</code>). El sistema inserta automáticamente el tag de <code class="bg-gray-100 px-1 rounded">gtag.js</code>. Si usás este atajo, no hace falta repetirlo en el campo "Código HTML head".</p>
-        <input type="text" name="google_analytics_id" value="{{ old('google_analytics_id', $gaId) }}" placeholder="G-XXXXXXXXXX"
-               class="w-full md:w-80 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm font-mono">
-    </div>
-
     {{-- HEAD --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-1">Código HTML para &lt;head&gt;</h3>
-        <p class="text-xs text-gray-500 mb-3">Se inserta dentro del <code class="bg-gray-100 px-1 rounded">&lt;head&gt;</code> de todas las páginas públicas, antes del cierre. Sirve para: Google Tag Manager (snippet principal), Meta Pixel, HotJar, Clarity, cualquier script que requiera cargarse temprano.</p>
+        <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-1">Código para el &lt;head&gt;</h3>
+        <p class="text-xs text-gray-500 mb-3">Se inserta dentro del <code class="bg-gray-100 px-1 rounded">&lt;head&gt;</code> de todas las páginas públicas, antes del cierre. Acá van: Google Tag Manager (snippet principal), Google Analytics (gtag.js), Meta Pixel, HotJar, Microsoft Clarity.</p>
         <textarea name="tracking_head_html" rows="14"
                   class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
                   placeholder="<!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){...})(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
 <!-- End Google Tag Manager -->
+
+<!-- Google tag (gtag.js) -->
+<script async src='https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX'></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
 
 <!-- Meta Pixel -->
 <script>
@@ -43,13 +44,26 @@
 
     {{-- BODY open --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-1">Código HTML al abrir &lt;body&gt;</h3>
+        <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-1">Código al abrir &lt;body&gt;</h3>
         <p class="text-xs text-gray-500 mb-3">Se inserta justo después del <code class="bg-gray-100 px-1 rounded">&lt;body&gt;</code>. Típicamente el fragmento <code class="bg-gray-100 px-1 rounded">&lt;noscript&gt;</code> de Google Tag Manager va acá.</p>
         <textarea name="tracking_body_html" rows="6"
                   class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
                   placeholder="<!-- Google Tag Manager (noscript) -->
 <noscript><iframe src='https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX' height='0' width='0' style='display:none;visibility:hidden'></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->">{{ old('tracking_body_html', $bodyHtml) }}</textarea>
+    </div>
+
+    {{-- FOOTER (before </body>) --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-1">Código al cerrar &lt;body&gt; (footer)</h3>
+        <p class="text-xs text-gray-500 mb-3">Se inserta justo antes del <code class="bg-gray-100 px-1 rounded">&lt;/body&gt;</code>. Ideal para widgets de chat (Tawk.to, Intercom), tags de remarketing diferido o cualquier script no crítico.</p>
+        <textarea name="tracking_footer_html" rows="8"
+                  class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
+                  placeholder="<!-- Tawk.to -->
+<script type='text/javascript'>
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){ ... })();
+</script>">{{ old('tracking_footer_html', $footerHtml) }}</textarea>
     </div>
 
     <div class="flex items-center gap-3">
