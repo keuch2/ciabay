@@ -116,6 +116,10 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
     Route::get('theme', [Admin\ThemeController::class, 'edit'])->name('theme.edit');
     Route::put('theme', [Admin\ThemeController::class, 'update'])->name('theme.update');
 
+    // Seguimiento (Google Analytics, GTM, Meta Pixel, HotJar, etc.)
+    Route::get('tracking', [Admin\TrackingController::class, 'edit'])->name('tracking.edit');
+    Route::put('tracking', [Admin\TrackingController::class, 'update'])->name('tracking.update');
+
     // Users
     Route::resource('users', Admin\UserController::class)->except(['show']);
 

@@ -110,8 +110,18 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @stack('styles')
+
+    {{-- Admin-managed tracking codes (GTM, Meta Pixel, HotJar, etc.) --}}
+    @php $trackingHead = \App\Models\Setting::get('tracking_head_html'); @endphp
+    @if($trackingHead)
+        {!! $trackingHead !!}
+    @endif
 </head>
 <body>
+    @php $trackingBody = \App\Models\Setting::get('tracking_body_html'); @endphp
+    @if($trackingBody)
+        {!! $trackingBody !!}
+    @endif
     @php
         $gaId = \App\Models\Setting::get('google_analytics_id');
         $__isDraftPreview = !empty($isDraft ?? null);
