@@ -17,9 +17,17 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-echo "==> 1/7 git: fetch + reset to origin/main"
-git fetch --all --prune
-git reset --hard origin/main
+# Pull latest code first, then re-exec the fresh script so bash doesn't run a
+# stale buffered version of deploy.sh.
+if [ -z "${DEPLOY_RELOADED:-}" ]; then
+  echo "==> 1/7 git: fetch + reset to origin/main"
+  git fetch --all --prune
+  git reset --hard origin/main
+  export DEPLOY_RELOADED=1
+  exec bash "$(pwd)/deploy.sh" "$@"
+fi
+
+# --- running as fresh reload from here ---
 
 PHP_BIN="${PHP_BIN:-}"
 for _p in /opt/php8-3/bin/php-cli /opt/ferozo/php8-3/bin/php-cli /opt/php8-2/bin/php-cli /opt/php8-1/bin/php-cli; do
