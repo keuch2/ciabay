@@ -30,7 +30,7 @@ fi
 # --- running as fresh reload from here ---
 
 PHP_BIN="${PHP_BIN:-}"
-for _p in /opt/php8-3/bin/php-cli /opt/ferozo/php8-3/bin/php-cli /opt/php8-2/bin/php-cli /opt/php8-1/bin/php-cli; do
+for _p in /opt/ferozo/php8-3/bin/php-cli /opt/ferozo/php8-2/bin/php-cli /opt/ferozo/php8-1/bin/php-cli /usr/local/lsws/lsphp83/bin/php /opt/php8-3/bin/php-cli; do
   if [ -x "$_p" ]; then PHP_BIN="$_p"; break; fi
 done
 if [ -z "$PHP_BIN" ]; then PHP_BIN="php"; fi
