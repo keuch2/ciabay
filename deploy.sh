@@ -21,8 +21,15 @@ echo "==> 1/7 git: fetch + reset to origin/main"
 git fetch --all --prune
 git reset --hard origin/main
 
+PHP_BIN="${PHP_BIN:-}"
+for _p in /opt/php8-3/bin/php-cli /opt/ferozo/php8-3/bin/php-cli /opt/php8-2/bin/php-cli /opt/php8-1/bin/php-cli; do
+  if [ -x "$_p" ]; then PHP_BIN="$_p"; break; fi
+done
+if [ -z "$PHP_BIN" ]; then PHP_BIN="php"; fi
+echo "==> using PHP: $($PHP_BIN -v 2>&1 | head -1)"
+
 echo "==> 2/7 composer install (production)"
-composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+"$PHP_BIN" /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 # Frontend assets: only rebuild if node is present. Otherwise trust repo-committed build.
 if command -v npm >/dev/null 2>&1 && [ -f package.json ]; then
@@ -34,16 +41,16 @@ else
 fi
 
 echo "==> 4/7 storage:link"
-php artisan storage:link 2>/dev/null || true
+"$PHP_BIN" artisan storage:link 2>/dev/null || true
 
 echo "==> 5/7 migrate (production, forced)"
-php artisan migrate --force
+"$PHP_BIN" artisan migrate --force
 
 echo "==> 6/7 clear + rebuild caches"
-php artisan optimize:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+"$PHP_BIN" artisan optimize:clear
+"$PHP_BIN" artisan config:cache
+"$PHP_BIN" artisan route:cache
+"$PHP_BIN" artisan view:cache
 
 echo "==> 7/7 writable permissions on storage + bootstrap/cache"
 # Best-effort: ensure the web user can write cache/logs even if repo cloning
