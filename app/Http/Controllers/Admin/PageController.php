@@ -32,6 +32,8 @@ class PageController extends Controller
             'is_homepage' => 'boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
+            'custom_css' => 'nullable|string|max:50000',
+            'custom_js' => 'nullable|string|max:50000',
             'status' => 'required|in:draft,published',
         ]);
 
@@ -65,6 +67,8 @@ class PageController extends Controller
             'is_homepage' => 'boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
+            'custom_css' => 'nullable|string|max:50000',
+            'custom_js' => 'nullable|string|max:50000',
             'status' => 'required|in:draft,published',
         ]);
 

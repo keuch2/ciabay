@@ -33,6 +33,8 @@ class BlogPostController extends Controller
             'content' => 'nullable|string',
             'featured_image' => 'nullable|image|max:2048',
             'blog_category_id' => 'nullable|exists:blog_categories,id',
+            'custom_css' => 'nullable|string|max:50000',
+            'custom_js' => 'nullable|string|max:50000',
             'status' => 'required|in:draft,published',
             'published_at' => 'nullable|date',
         ]);
@@ -72,6 +74,8 @@ class BlogPostController extends Controller
             'content' => 'nullable|string',
             'featured_image' => 'nullable|image|max:2048',
             'blog_category_id' => 'nullable|exists:blog_categories,id',
+            'custom_css' => 'nullable|string|max:50000',
+            'custom_js' => 'nullable|string|max:50000',
             'status' => 'required|in:draft,published',
             'published_at' => 'nullable|date',
         ]);

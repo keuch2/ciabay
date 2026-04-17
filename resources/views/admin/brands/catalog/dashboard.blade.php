@@ -58,6 +58,69 @@
     </div>
 @endif
 
+@if(session('success'))
+    <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6 text-sm">
+        {{ session('success') }}
+    </div>
+@endif
+
+{{-- Per-brand catalog configuration (columns, pagination, custom CSS/JS) --}}
+@php
+    $defaultCols = (int) \App\Models\Setting::get('catalog_columns_default', 4);
+    $defaultPerPage = (int) \App\Models\Setting::get('catalog_per_page_default', 12);
+@endphp
+<details class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+    <summary class="cursor-pointer p-4 flex items-center gap-2 font-semibold text-gray-800">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+        Configuración del catálogo de esta marca
+        <span class="text-xs font-normal text-gray-500 ml-2">(sobrescribe los defaults globales)</span>
+    </summary>
+    <form action="{{ route('admin.brands.catalog.config.update', $brand) }}" method="POST" class="px-4 pb-4 space-y-4">
+        @csrf @method('PUT')
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Columnas</label>
+                <input type="number" name="catalog_columns" min="1" max="6"
+                       value="{{ old('catalog_columns', $brand->catalog_columns) }}"
+                       placeholder="Default global: {{ $defaultCols }}"
+                       class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                <p class="text-xs text-gray-500 mt-1">Dejar vacío para usar el default global ({{ $defaultCols }}).</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Productos por página</label>
+                <input type="number" name="catalog_per_page" min="1" max="100"
+                       value="{{ old('catalog_per_page', $brand->catalog_per_page) }}"
+                       placeholder="Default global: {{ $defaultPerPage }}"
+                       class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                <p class="text-xs text-gray-500 mt-1">Dejar vacío para usar el default global ({{ $defaultPerPage }}).</p>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">CSS específico del catálogo de esta marca</label>
+            <textarea name="catalog_custom_css" rows="8"
+                      class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
+                      placeholder=".brand-catalog-card { border-radius: 16px; }">{{ old('catalog_custom_css', $brand->catalog_custom_css) }}</textarea>
+            <p class="text-xs text-gray-500 mt-1">Se aplica sólo a <code>/catalogo/{{ $brand->slug }}</code>. Se suma al CSS global de catálogo.</p>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">JavaScript específico del catálogo de esta marca</label>
+            <textarea name="catalog_custom_js" rows="6"
+                      class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
+                      placeholder="">{{ old('catalog_custom_js', $brand->catalog_custom_js) }}</textarea>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+                Guardar configuración
+            </button>
+            <a href="{{ route('admin.catalog-config.edit') }}" class="text-xs text-blue-600 hover:text-blue-800">Editar defaults globales →</a>
+        </div>
+    </form>
+</details>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- Categories --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

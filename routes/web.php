@@ -55,6 +55,7 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
     // Brand catalogs (categories + products scoped under each brand)
     Route::prefix('brands/{brand}/catalog')->name('brands.catalog.')->group(function () {
         Route::get('/', [Admin\BrandCatalogController::class, 'show'])->name('show');
+        Route::put('config', [Admin\BrandCatalogController::class, 'updateConfig'])->name('config.update');
 
         Route::get('categories/create', [Admin\CatalogCategoryController::class, 'create'])->name('categories.create');
         Route::post('categories', [Admin\CatalogCategoryController::class, 'store'])->name('categories.store');
@@ -119,6 +120,18 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
     // Seguimiento (Google Analytics, GTM, Meta Pixel, HotJar, etc.)
     Route::get('tracking', [Admin\TrackingController::class, 'edit'])->name('tracking.edit');
     Route::put('tracking', [Admin\TrackingController::class, 'update'])->name('tracking.update');
+
+    // Código global (CSS/JS)
+    Route::get('code', [Admin\CodeController::class, 'edit'])->name('code.edit');
+    Route::put('code', [Admin\CodeController::class, 'update'])->name('code.update');
+
+    // Configuración de Tienda
+    Route::get('store-config', [Admin\StoreConfigController::class, 'edit'])->name('store-config.edit');
+    Route::put('store-config', [Admin\StoreConfigController::class, 'update'])->name('store-config.update');
+
+    // Configuración de Catálogos (defaults globales)
+    Route::get('catalog-config', [Admin\CatalogConfigController::class, 'edit'])->name('catalog-config.edit');
+    Route::put('catalog-config', [Admin\CatalogConfigController::class, 'update'])->name('catalog-config.update');
 
     // Users
     Route::resource('users', Admin\UserController::class)->except(['show']);

@@ -62,7 +62,7 @@
             @endif
 
             @if($products->count())
-                <div class="brand-catalog-grid">
+                <div class="brand-catalog-grid" style="grid-template-columns: repeat({{ $columns }}, minmax(0, 1fr));">
                     @foreach($products as $product)
                         @php $src = $resolveImg($product->image); @endphp
                         <a href="{{ url('catalogo/' . $brand->slug . '/' . $product->slug) }}" class="brand-catalog-card">
@@ -86,6 +86,12 @@
                         </a>
                     @endforeach
                 </div>
+
+                @if($products->hasPages())
+                    <div class="brand-catalog-pagination">
+                        {{ $products->withQueryString()->links() }}
+                    </div>
+                @endif
             @else
                 <div class="brand-catalog-empty">
                     <p>{{ $selectedCategory ? 'No hay productos en esta categoría todavía.' : 'Pronto vamos a sumar productos a este catálogo.' }}</p>
@@ -120,6 +126,12 @@
 .brand-catalog-category-description { color: rgba(255,255,255,0.7); font-size: 0.95rem; margin-bottom: 2rem; max-width: 700px; }
 
 .brand-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+@media (max-width: 900px) { .brand-catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 560px) { .brand-catalog-grid { grid-template-columns: 1fr !important; } }
+.brand-catalog-pagination { margin-top: 3rem; display: flex; justify-content: center; }
+.brand-catalog-pagination nav { color: rgba(255,255,255,0.9); }
+.brand-catalog-pagination nav a, .brand-catalog-pagination nav span { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); }
+.brand-catalog-pagination nav a:hover { background: rgba(255,255,255,0.12); }
 .brand-catalog-card { display: flex; flex-direction: column; background: #2a2a2a; border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; transition: transform .2s ease, box-shadow .2s ease; border: 1px solid rgba(255,255,255,0.05); }
 .brand-catalog-card:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.15); }
 .brand-catalog-card-image { aspect-ratio: 4/3; overflow: hidden; background: #333; }

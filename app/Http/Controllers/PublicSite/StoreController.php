@@ -29,7 +29,10 @@ class StoreController extends Controller
 
         $isDraft = ! $product->is_active;
 
-        return view('public.store.show', compact('product', 'related', 'isDraft'));
+        $customCss = Setting::get('store_custom_css');
+        $customJs = Setting::get('store_custom_js');
+
+        return view('public.store.show', compact('product', 'related', 'isDraft', 'customCss', 'customJs'));
     }
 
     public function order(Request $request)

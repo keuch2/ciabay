@@ -70,6 +70,24 @@
                               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">{{ old('meta_description', $page->meta_description) }}</textarea>
                 </div>
 
+                <hr class="border-gray-200">
+                <h3 class="font-semibold text-gray-800 text-sm uppercase tracking-wider">Código personalizado</h3>
+                <p class="text-xs text-gray-500 -mt-2">Sólo se aplica a esta página. Para código global use Admin → Código.</p>
+
+                <div>
+                    <label for="custom_css" class="block text-sm font-medium text-gray-700 mb-1">CSS</label>
+                    <textarea name="custom_css" id="custom_css" rows="6"
+                              class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
+                              placeholder=".hero { background: #000; }">{{ old('custom_css', $page->custom_css) }}</textarea>
+                </div>
+
+                <div>
+                    <label for="custom_js" class="block text-sm font-medium text-gray-700 mb-1">JavaScript</label>
+                    <textarea name="custom_js" id="custom_js" rows="6"
+                              class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
+                              placeholder="">{{ old('custom_js', $page->custom_js) }}</textarea>
+                </div>
+
                 <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
                     Guardar Cambios
                 </button>

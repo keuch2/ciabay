@@ -135,6 +135,8 @@ class CatalogProductController extends Controller
             'gallery_images.*' => 'image|max:4096',
             'remove_images' => 'nullable|array',
             'remove_images.*' => 'string|max:500',
+            'custom_css' => 'nullable|string|max:50000',
+            'custom_js' => 'nullable|string|max:50000',
             'contact_enabled' => 'boolean',
             'sort_order' => 'nullable|integer',
             'is_active' => 'boolean',

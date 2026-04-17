@@ -7,6 +7,7 @@ namespace App\Http\Controllers\PublicSite;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\CatalogProduct;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class BrandCatalogController extends Controller
@@ -34,14 +35,23 @@ class BrandCatalogController extends Controller
             ? $categories->firstWhere('slug', $selectedCategorySlug)
             : null;
 
+        $columns = $brand->catalog_columns ?: (int) Setting::get('catalog_columns_default', 4);
+        $perPage = $brand->catalog_per_page ?: (int) Setting::get('catalog_per_page_default', 12);
+
         $productQuery = $brand->catalogProducts()->with('category');
         if (! $isStaff) $productQuery->active();
         if ($selectedCategory) $productQuery->where('catalog_category_id', $selectedCategory->id);
-        $products = $productQuery->orderBy('sort_order')->orderBy('name')->get();
+        $products = $productQuery->orderBy('sort_order')->orderBy('name')->paginate($perPage)->withQueryString();
 
         $isDraft = ! $brand->catalog_enabled;
 
-        return view('public.catalog.show', compact('brand', 'categories', 'products', 'selectedCategory', 'isDraft'));
+        $customCss = $this->composeCatalogCss($brand);
+        $customJs = $this->composeCatalogJs($brand);
+
+        return view('public.catalog.show', compact(
+            'brand', 'categories', 'products', 'selectedCategory',
+            'isDraft', 'customCss', 'customJs', 'columns'
+        ));
     }
 
     public function product(string $brandSlug, string $productSlug)
@@ -66,6 +76,27 @@ class BrandCatalogController extends Controller
 
         $isDraft = ! $brand->catalog_enabled || ! $product->is_active;
 
-        return view('public.catalog.product', compact('brand', 'product', 'related', 'isDraft'));
+        $customCss = trim($this->composeCatalogCss($brand) . "\n" . ($product->custom_css ?? ''));
+        $customJs = trim($this->composeCatalogJs($brand) . "\n" . ($product->custom_js ?? ''));
+
+        return view('public.catalog.product', compact(
+            'brand', 'product', 'related', 'isDraft', 'customCss', 'customJs'
+        ));
+    }
+
+    private function composeCatalogCss(Brand $brand): string
+    {
+        return trim(
+            (Setting::get('catalog_custom_css_default') ?? '') . "\n" .
+            ($brand->catalog_custom_css ?? '')
+        );
+    }
+
+    private function composeCatalogJs(Brand $brand): string
+    {
+        return trim(
+            (Setting::get('catalog_custom_js_default') ?? '') . "\n" .
+            ($brand->catalog_custom_js ?? '')
+        );
     }
 }

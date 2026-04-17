@@ -25,6 +25,9 @@ class HomeController extends Controller
 
         $isDraft = $page && $page->status !== 'published';
 
-        return view('public.home', compact('page', 'isDraft'));
+        $customCss = $page?->custom_css;
+        $customJs = $page?->custom_js;
+
+        return view('public.home', compact('page', 'isDraft', 'customCss', 'customJs'));
     }
 }

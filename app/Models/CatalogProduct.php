@@ -12,6 +12,7 @@ class CatalogProduct extends Model
     protected $fillable = [
         'brand_id', 'catalog_category_id', 'name', 'slug',
         'short_description', 'description', 'image', 'images',
+        'custom_css', 'custom_js',
         'contact_enabled', 'sort_order', 'is_active',
     ];
 

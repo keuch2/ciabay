@@ -121,4 +121,23 @@
         <input type="file" name="gallery_images[]" accept="image/*" multiple
                class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
     </div>
+
+    <details class="border-t border-gray-200 pt-4">
+        <summary class="cursor-pointer text-sm font-semibold text-gray-800 uppercase tracking-wider">Código personalizado</summary>
+        <p class="text-xs text-gray-500 mt-2 mb-3">Sólo se aplica a la página de detalle de este producto.</p>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">CSS</label>
+                <textarea name="custom_css" rows="6"
+                          class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
+                          placeholder="">{{ old('custom_css', $product->custom_css ?? '') }}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">JavaScript</label>
+                <textarea name="custom_js" rows="6"
+                          class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs font-mono"
+                          placeholder="">{{ old('custom_js', $product->custom_js ?? '') }}</textarea>
+            </div>
+        </div>
+    </details>
 </div>

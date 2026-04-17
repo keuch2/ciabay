@@ -19,10 +19,13 @@ class PageController extends Controller
         $page = $query->firstOrFail();
         $isDraft = $page->status !== 'published';
 
+        $customCss = $page->custom_css;
+        $customJs = $page->custom_js;
+
         if ($page->template) {
-            return view('public.' . $page->template, compact('page', 'isDraft'));
+            return view('public.' . $page->template, compact('page', 'isDraft', 'customCss', 'customJs'));
         }
 
-        return view('public.page', compact('page', 'isDraft'));
+        return view('public.page', compact('page', 'isDraft', 'customCss', 'customJs'));
     }
 }

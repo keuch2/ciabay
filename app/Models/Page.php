@@ -13,6 +13,7 @@ class Page extends Model
     protected $fillable = [
         'title', 'slug', 'template', 'is_homepage',
         'meta_title', 'meta_description', 'og_image',
+        'custom_css', 'custom_js',
         'status', 'sort_order',
     ];
 

@@ -14,6 +14,8 @@ class Brand extends Model
         'is_represented', 'sort_order', 'is_active',
         'catalog_enabled', 'catalog_hero_image', 'catalog_intro',
         'catalog_contact_whatsapp', 'catalog_contact_message',
+        'catalog_columns', 'catalog_per_page',
+        'catalog_custom_css', 'catalog_custom_js',
     ];
 
     protected function casts(): array

@@ -30,6 +30,9 @@ class BlogController extends Controller
 
         $isDraft = $post->status !== 'published' || !$post->published_at;
 
-        return view('public.blog.show', compact('post', 'isDraft'));
+        $customCss = $post->custom_css;
+        $customJs = $post->custom_js;
+
+        return view('public.blog.show', compact('post', 'isDraft', 'customCss', 'customJs'));
     }
 }

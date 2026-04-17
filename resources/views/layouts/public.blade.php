@@ -111,6 +111,23 @@
 
     @stack('styles')
 
+    {{-- Admin-managed custom CSS: global + section (store) + entity --}}
+    @php
+        $__globalCustomCss = \App\Models\Setting::get('global_custom_css');
+        $__sectionCustomCss = request()->is('tienda-online*')
+            ? \App\Models\Setting::get('store_custom_css')
+            : null;
+    @endphp
+    @if($__globalCustomCss)
+        <style id="global-custom-css">{!! $__globalCustomCss !!}</style>
+    @endif
+    @if($__sectionCustomCss)
+        <style id="section-custom-css">{!! $__sectionCustomCss !!}</style>
+    @endif
+    @if(!empty($customCss))
+        <style id="entity-custom-css">{!! $customCss !!}</style>
+    @endif
+
     {{-- Admin-managed tracking codes (GTM, Meta Pixel, HotJar, etc.) --}}
     @php $trackingHead = \App\Models\Setting::get('tracking_head_html'); @endphp
     @if($trackingHead)
@@ -299,6 +316,23 @@
     <!-- Scripts -->
     <script src="{{ asset('assets/js/main.js') }}"></script>
     @stack('scripts')
+
+    {{-- Admin-managed custom JS: global + section (store) + entity --}}
+    @php
+        $__globalCustomJs = \App\Models\Setting::get('global_custom_js');
+        $__sectionCustomJs = request()->is('tienda-online*')
+            ? \App\Models\Setting::get('store_custom_js')
+            : null;
+    @endphp
+    @if($__globalCustomJs)
+        <script id="global-custom-js">{!! $__globalCustomJs !!}</script>
+    @endif
+    @if($__sectionCustomJs)
+        <script id="section-custom-js">{!! $__sectionCustomJs !!}</script>
+    @endif
+    @if(!empty($customJs))
+        <script id="entity-custom-js">{!! $customJs !!}</script>
+    @endif
 
     @php $trackingFooter = \App\Models\Setting::get('tracking_footer_html'); @endphp
     @if($trackingFooter)
