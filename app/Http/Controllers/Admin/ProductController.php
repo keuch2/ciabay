@@ -21,7 +21,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        $categories = ProductCategory::orderBy('sort_order')->get();
+        $categories = ProductCategory::with('children')->roots()->orderBy('sort_order')->get();
         return view('admin.products.create', compact('categories'));
     }
 
@@ -48,7 +48,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $categories = ProductCategory::orderBy('sort_order')->get();
+        $categories = ProductCategory::with('children')->roots()->orderBy('sort_order')->get();
         return view('admin.products.edit', compact('product', 'categories'));
     }
 

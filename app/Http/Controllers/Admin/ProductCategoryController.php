@@ -13,13 +13,20 @@ class ProductCategoryController extends Controller
 {
     public function index()
     {
-        $categories = ProductCategory::withCount('products')->orderBy('sort_order')->get();
+        $categories = ProductCategory::with(['children' => function ($q) {
+                $q->withCount('products')->orderBy('sort_order');
+            }])
+            ->withCount('products')
+            ->roots()
+            ->orderBy('sort_order')
+            ->get();
         return view('admin.product-categories.index', compact('categories'));
     }
 
     public function create()
     {
-        return view('admin.product-categories.create', ['category' => new ProductCategory()]);
+        $parents = ProductCategory::roots()->orderBy('sort_order')->get();
+        return view('admin.product-categories.create', ['category' => new ProductCategory(), 'parents' => $parents]);
     }
 
     public function store(Request $request)
@@ -36,7 +43,8 @@ class ProductCategoryController extends Controller
 
     public function edit(ProductCategory $productCategory)
     {
-        return view('admin.product-categories.edit', ['category' => $productCategory]);
+        $parents = ProductCategory::roots()->where('id', '!=', $productCategory->id)->orderBy('sort_order')->get();
+        return view('admin.product-categories.edit', ['category' => $productCategory, 'parents' => $parents]);
     }
 
     public function update(Request $request, ProductCategory $productCategory)
@@ -70,6 +78,7 @@ class ProductCategoryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => $slugRule,
             'sort_order' => 'nullable|integer',
+            'parent_id' => 'nullable|exists:product_categories,id',
         ]);
     }
 }

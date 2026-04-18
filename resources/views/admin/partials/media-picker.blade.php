@@ -18,22 +18,35 @@
             </button>
         </div>
 
-        <div class="flex items-center gap-3 px-6 py-3 border-b border-gray-200 bg-gray-50">
-            <div class="flex items-center gap-1 text-sm">
-                @foreach([['all','Todo'],['upload','Subidos'],['asset','Assets']] as [$k, $label])
-                    <button type="button" @click="tab = '{{ $k }}'"
-                            :class="tab === '{{ $k }}' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'"
-                            class="px-3 py-1 rounded-full text-xs font-medium">{{ $label }}</button>
-                @endforeach
+        <div class="px-6 py-3 border-b border-gray-200 bg-gray-50 space-y-2">
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1 text-sm">
+                    @foreach([['all','Todo'],['upload','Subidos'],['asset','Assets']] as [$k, $label])
+                        <button type="button" @click="tab = '{{ $k }}'; folder = ''"
+                                :class="tab === '{{ $k }}' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'"
+                                class="px-3 py-1 rounded-full text-xs font-medium">{{ $label }}</button>
+                    @endforeach
+                </div>
+                <input type="search" x-model="q" placeholder="Buscar por nombre…"
+                       class="rounded-lg border-gray-300 text-sm flex-1">
+                <input type="file" accept="image/*" @change="uploadNew($event)" class="hidden" x-ref="pickerFileInput">
+                <button type="button" @click="$refs.pickerFileInput.click()" :disabled="uploading"
+                        class="bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded hover:bg-green-700 disabled:opacity-60">
+                    <span x-show="!uploading">+ Subir nuevo</span>
+                    <span x-show="uploading">Subiendo…</span>
+                </button>
             </div>
-            <input type="search" x-model="q" placeholder="Buscar por ruta/nombre…"
-                   class="rounded-lg border-gray-300 text-sm flex-1">
-            <input type="file" accept="image/*" @change="uploadNew($event)" class="hidden" x-ref="pickerFileInput">
-            <button type="button" @click="$refs.pickerFileInput.click()" :disabled="uploading"
-                    class="bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded hover:bg-green-700 disabled:opacity-60">
-                <span x-show="!uploading">+ Subir nuevo</span>
-                <span x-show="uploading">Subiendo…</span>
-            </button>
+            <div class="flex items-center gap-1 flex-wrap">
+                <span class="text-[10px] text-gray-400 mr-1">Carpeta:</span>
+                <button type="button" @click="folder = ''"
+                        :class="folder === '' ? 'bg-gray-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'"
+                        class="px-2 py-0.5 rounded text-[11px] font-medium">Todas</button>
+                <template x-for="f in folders()" :key="f">
+                    <button type="button" @click="folder = f"
+                            :class="folder === f ? 'bg-gray-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'"
+                            class="px-2 py-0.5 rounded text-[11px] font-medium" x-text="f"></button>
+                </template>
+            </div>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
@@ -67,8 +80,9 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('mediaPicker', () => ({
         open: false,
-        tab: 'all',
+        tab: 'upload',
         q: '',
+        folder: '',
         files: [],
         loading: false,
         uploading: false,
@@ -76,6 +90,9 @@ document.addEventListener('alpine:init', () => {
 
         async openPicker(detail) {
             this.onSelect = detail?.onSelect || null;
+            this.q = '';
+            this.folder = '';
+            this.tab = 'upload';
             this.open = true;
             await this.load();
         },
@@ -83,6 +100,18 @@ document.addEventListener('alpine:init', () => {
         close() {
             this.open = false;
             this.onSelect = null;
+            this.q = '';
+            this.folder = '';
+        },
+
+        folders() {
+            const seen = new Set();
+            this.files.forEach(f => {
+                if (this.tab !== 'all' && f.source !== this.tab) return;
+                const parts = f.path.split('/');
+                if (parts.length > 1) seen.add(parts.slice(0, -1).join('/'));
+            });
+            return [...seen].sort();
         },
 
         async load() {
@@ -104,6 +133,7 @@ document.addEventListener('alpine:init', () => {
             const q = this.q.toLowerCase();
             return this.files.filter(f => {
                 if (this.tab !== 'all' && f.source !== this.tab) return false;
+                if (this.folder && !f.path.startsWith(this.folder + '/')) return false;
                 if (q && !f.path.toLowerCase().includes(q)) return false;
                 return true;
             });

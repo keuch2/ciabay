@@ -26,7 +26,16 @@
                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <option value="">Sin categoría</option>
                 @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}" {{ old('product_category_id', $product->product_category_id ?? '') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                    @if($cat->children->count())
+                        <optgroup label="{{ $cat->name }}">
+                            <option value="{{ $cat->id }}" {{ old('product_category_id', $product->product_category_id ?? '') == $cat->id ? 'selected' : '' }}>{{ $cat->name }} (general)</option>
+                            @foreach($cat->children->sortBy('sort_order') as $child)
+                                <option value="{{ $child->id }}" {{ old('product_category_id', $product->product_category_id ?? '') == $child->id ? 'selected' : '' }}>{{ $child->name }}</option>
+                            @endforeach
+                        </optgroup>
+                    @else
+                        <option value="{{ $cat->id }}" {{ old('product_category_id', $product->product_category_id ?? '') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                    @endif
                 @endforeach
             </select>
         </div>

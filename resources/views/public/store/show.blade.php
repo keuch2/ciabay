@@ -65,7 +65,7 @@
                     <h1 class="product-title">{{ $product->name }}</h1>
 
                     @if($product->price)
-                        <div class="product-price">Gs. {{ number_format((float) $product->price, 0, ',', '.') }}</div>
+                        <div class="product-price">Gs. {{ number_format((int) $product->price, 0, ',', '.') }}</div>
                     @endif
 
                     @if($product->description)

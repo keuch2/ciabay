@@ -26,7 +26,7 @@
             </thead>
             <tbody>
                 @foreach($categories as $cat)
-                    <tr class="border-b border-gray-100 last:border-0">
+                    <tr class="border-b border-gray-100">
                         <td class="px-4 py-3 font-medium text-gray-800">{{ $cat->name }}</td>
                         <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ $cat->slug }}</td>
                         <td class="px-4 py-3 text-gray-600">{{ $cat->products_count }}</td>
@@ -40,6 +40,24 @@
                             </form>
                         </td>
                     </tr>
+                    @foreach($cat->children->sortBy('sort_order') as $child)
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <td class="px-4 py-2.5 text-gray-700">
+                                <span class="text-gray-400 mr-1">↳</span>{{ $child->name }}
+                            </td>
+                            <td class="px-4 py-2.5 text-gray-500 font-mono text-xs">{{ $child->slug }}</td>
+                            <td class="px-4 py-2.5 text-gray-600">{{ $child->products_count ?? 0 }}</td>
+                            <td class="px-4 py-2.5 text-gray-600">{{ $child->sort_order }}</td>
+                            <td class="px-4 py-2.5 text-right">
+                                <a href="{{ route('admin.product-categories.edit', $child) }}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">Editar</a>
+                                <form method="POST" action="{{ route('admin.product-categories.destroy', $child) }}" class="inline ml-3"
+                                      onsubmit="return confirm('¿Eliminar esta subcategoría?');">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-800 text-xs font-medium">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
                 @endforeach
             </tbody>
         </table>
