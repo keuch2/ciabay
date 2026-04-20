@@ -96,7 +96,7 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $i => $p) {
-            Product::updateOrCreate(
+            $product = Product::updateOrCreate(
                 ['slug' => $p['slug']],
                 [
                     'name' => $p['name'],
@@ -109,6 +109,7 @@ class ProductSeeder extends Seeder
                     'sort_order' => $i,
                 ]
             );
+            $product->categories()->sync([$catIds[$p['category']]]);
         }
 
         // Clean up legacy seed data

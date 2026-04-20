@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\PublicSite;
 
 use App\Http\Controllers\Controller;
+use App\Models\Block;
 use App\Models\Order;
+use App\Models\Page;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Services\StoreFilter;
 use Illuminate\Http\Request;
 
 class StoreController extends Controller
@@ -20,9 +23,13 @@ class StoreController extends Controller
         if (! $isStaff) $query->active();
         $product = $query->firstOrFail();
 
+        $relatedCategoryIds = $product->categories()->pluck('product_categories.id');
         $related = Product::active()
             ->where('id', '!=', $product->id)
-            ->when($product->product_category_id, fn ($q) => $q->where('product_category_id', $product->product_category_id))
+            ->when(
+                $relatedCategoryIds->isNotEmpty(),
+                fn ($q) => $q->whereHas('categories', fn ($q2) => $q2->whereIn('product_categories.id', $relatedCategoryIds))
+            )
             ->orderBy('sort_order')
             ->limit(4)
             ->get();
@@ -33,6 +40,61 @@ class StoreController extends Controller
         $customJs = Setting::get('store_custom_js');
 
         return view('public.store.show', compact('product', 'related', 'isDraft', 'customCss', 'customJs'));
+    }
+
+    /**
+     * AJAX endpoint: returns the rendered products grid + pagination for
+     * the current multi-category filter. The tienda-online page's
+     * `redcase-products` block feeds the request back to its own options
+     * so `source=category|manual` keep working.
+     */
+    public function filterAjax(Request $request)
+    {
+        $blockId = (int) $request->query('block', 0);
+        $blockData = [];
+        if ($blockId) {
+            $block = Block::find($blockId);
+            if ($block && $block->type === 'redcase-products') {
+                $blockData = $block->data ?? [];
+            }
+        }
+
+        $filterSlugs = StoreFilter::slugsFromRequest();
+        $query = StoreFilter::productsQuery($blockData, $filterSlugs);
+
+        $perPage = !empty($blockData['per_page'])
+            ? (int) $blockData['per_page']
+            : (int) Setting::get('store_per_page', 12);
+        if ($perPage < 1) $perPage = 12;
+
+        $source = $blockData['source'] ?? 'all';
+        if ($source === 'manual') {
+            $products = $query->get();
+            $paginated = null;
+        } else {
+            $paginated = $query->paginate($perPage)->withQueryString();
+            $products = $paginated;
+        }
+
+        $showPrice = (bool) ($blockData['show_price'] ?? true);
+        $resolveImg = fn ($img) => $this->resolveImgPath($img);
+
+        $html = view('blocks.partials.redcase-products-results', compact(
+            'products', 'paginated', 'showPrice', 'resolveImg'
+        ))->render();
+
+        return response()->json([
+            'html' => $html,
+            'total' => $products instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator ? $products->total() : $products->count(),
+        ]);
+    }
+
+    private function resolveImgPath($img): ?string
+    {
+        if (! $img) return null;
+        if (preg_match('#^(https?:)?//#', $img)) return $img;
+        if (str_starts_with($img, 'assets/') || str_starts_with($img, 'storage/')) return asset($img);
+        return asset('storage/' . $img);
     }
 
     public function order(Request $request)

@@ -5,7 +5,7 @@
 @php
     $categories = \App\Models\ProductCategory::with('children')->roots()->orderBy('sort_order')->get(['id','name']);
     $allProducts = \App\Models\Product::orderBy('sort_order')->get(['id','name']);
-    $defaults = ['title'=>'Nuestros Productos','subtitle'=>'','source'=>'all','category_id'=>null,'product_ids'=>[],'show_category_filter'=>false,'show_price'=>false,'per_page'=>null];
+    $defaults = ['title'=>'Nuestros Productos','subtitle'=>'','source'=>'all','category_id'=>null,'product_ids'=>[],'show_category_filter'=>false,'show_price'=>true,'per_page'=>null];
 @endphp
 <div class="space-y-3" x-data="{ d: {{ json_encode(array_merge($defaults, $data)) }} }">
     <div class="grid grid-cols-2 gap-3">

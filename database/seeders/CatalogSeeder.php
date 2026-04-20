@@ -115,7 +115,7 @@ class CatalogSeeder extends Seeder
         ];
 
         foreach ($products as $i => $p) {
-            CatalogProduct::updateOrCreate(
+            $catalogProduct = CatalogProduct::updateOrCreate(
                 ['brand_id' => $brand->id, 'slug' => $p['slug']],
                 [
                     'brand_id' => $brand->id,
@@ -130,6 +130,7 @@ class CatalogSeeder extends Seeder
                     'sort_order' => $i,
                 ]
             );
+            $catalogProduct->categories()->sync([$catIds[$p['category']]]);
         }
     }
 }

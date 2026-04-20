@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use App\Models\CatalogCategory;
 use App\Models\CatalogProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -40,9 +41,14 @@ class CatalogProductController extends Controller
             );
         }
 
-        unset($validated['library_image'], $validated['remove_image'], $validated['gallery_images'], $validated['remove_images']);
+        unset(
+            $validated['library_image'], $validated['remove_image'],
+            $validated['gallery_images'], $validated['remove_images'],
+            $validated['catalog_category_ids']
+        );
 
-        CatalogProduct::create($validated);
+        $product = CatalogProduct::create($validated);
+        $product->categories()->sync($this->collectCategoryIds($request, $brand, $validated['catalog_category_id'] ?? null));
 
         return redirect()->route('admin.brands.catalog.show', $brand)
             ->with('success', 'Producto creado correctamente.');
@@ -85,9 +91,14 @@ class CatalogProductController extends Controller
             );
         }
 
-        unset($validated['library_image'], $validated['remove_image'], $validated['gallery_images'], $validated['remove_images']);
+        unset(
+            $validated['library_image'], $validated['remove_image'],
+            $validated['gallery_images'], $validated['remove_images'],
+            $validated['catalog_category_ids']
+        );
 
         $product->update($validated);
+        $product->categories()->sync($this->collectCategoryIds($request, $brand, $validated['catalog_category_id'] ?? $product->catalog_category_id));
 
         return redirect()->route('admin.brands.catalog.show', $brand)
             ->with('success', 'Producto actualizado correctamente.');
@@ -126,6 +137,8 @@ class CatalogProductController extends Controller
             'name' => 'required|string|max:255',
             'slug' => $slugRule,
             'catalog_category_id' => 'nullable|integer|exists:catalog_categories,id',
+            'catalog_category_ids' => 'nullable|array',
+            'catalog_category_ids.*' => 'integer|exists:catalog_categories,id',
             'short_description' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:10000',
             'image' => 'nullable|image|max:4096',
@@ -141,6 +154,25 @@ class CatalogProductController extends Controller
             'sort_order' => 'nullable|integer',
             'is_active' => 'boolean',
         ]);
+    }
+
+    /**
+     * Collect category IDs scoped to this brand — drops any that don't belong
+     * to the given brand so we can't leak categories across brands.
+     */
+    private function collectCategoryIds(Request $request, Brand $brand, $primary): array
+    {
+        $ids = array_map('intval', (array) $request->input('catalog_category_ids', []));
+        if ($primary) {
+            $ids[] = (int) $primary;
+        }
+        $ids = array_values(array_unique(array_filter($ids)));
+        if (! $ids) return [];
+
+        return CatalogCategory::where('brand_id', $brand->id)
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->all();
     }
 
     private function resolveMainImage(Request $request, ?CatalogProduct $product)

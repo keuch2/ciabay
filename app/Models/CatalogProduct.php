@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class CatalogProduct extends Model
 {
@@ -35,6 +36,16 @@ class CatalogProduct extends Model
         return $this->belongsTo(CatalogCategory::class, 'catalog_category_id');
     }
 
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            CatalogCategory::class,
+            'catalog_category_catalog_product',
+            'catalog_product_id',
+            'catalog_category_id'
+        );
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -49,7 +60,7 @@ class CatalogProduct extends Model
         $gallery = [];
         if ($this->image) $gallery[] = $this->image;
         foreach ($this->images ?? [] as $img) {
-            if ($img && !in_array($img, $gallery, true)) {
+            if ($img && is_string($img) && trim($img) !== '' && !in_array($img, $gallery, true)) {
                 $gallery[] = $img;
             }
         }

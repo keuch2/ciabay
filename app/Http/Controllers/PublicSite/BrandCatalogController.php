@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\CatalogProduct;
 use App\Models\Setting;
+use App\Services\BrandCatalogFilter;
 use Illuminate\Http\Request;
 
 class BrandCatalogController extends Controller
@@ -27,20 +28,20 @@ class BrandCatalogController extends Controller
             ->when(! $isStaff, fn ($q) => $q->active())
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->withCount(['products' => fn ($q) => $isStaff ? $q : $q->where('is_active', true)])
+            ->withCount(['productsAny as products_count' => fn ($q) => $isStaff ? $q : $q->where('is_active', true)])
             ->get();
 
-        $selectedCategorySlug = $request->query('categoria');
-        $selectedCategory = $selectedCategorySlug
-            ? $categories->firstWhere('slug', $selectedCategorySlug)
-            : null;
+        $selectedSlugs = BrandCatalogFilter::slugsFromRequest();
+        $selectedCategories = $selectedSlugs
+            ? $categories->whereIn('slug', $selectedSlugs)->values()
+            : collect();
 
         $columns = $brand->catalog_columns ?: (int) Setting::get('catalog_columns_default', 4);
         $perPage = $brand->catalog_per_page ?: (int) Setting::get('catalog_per_page_default', 12);
 
         $productQuery = $brand->catalogProducts()->with('category');
         if (! $isStaff) $productQuery->active();
-        if ($selectedCategory) $productQuery->where('catalog_category_id', $selectedCategory->id);
+        BrandCatalogFilter::applyFilter($productQuery, $brand, $selectedSlugs);
         $products = $productQuery->orderBy('sort_order')->orderBy('name')->paginate($perPage)->withQueryString();
 
         $isDraft = ! $brand->catalog_enabled;
@@ -49,9 +50,45 @@ class BrandCatalogController extends Controller
         $customJs = $this->composeCatalogJs($brand);
 
         return view('public.catalog.show', compact(
-            'brand', 'categories', 'products', 'selectedCategory',
+            'brand', 'categories', 'products', 'selectedCategories', 'selectedSlugs',
             'isDraft', 'customCss', 'customJs', 'columns'
         ));
+    }
+
+    /**
+     * AJAX endpoint: returns the rendered products grid + pagination for
+     * the current multi-category filter on a brand catalog.
+     */
+    public function productsAjax(string $brandSlug, Request $request)
+    {
+        $isStaff = auth()->check() && auth()->user()->isStaff();
+        $brand = Brand::where('slug', $brandSlug)->firstOrFail();
+        if (! $brand->catalog_enabled && ! $isStaff) abort(404);
+
+        $selectedSlugs = BrandCatalogFilter::slugsFromRequest();
+        $columns = $brand->catalog_columns ?: (int) Setting::get('catalog_columns_default', 4);
+        $perPage = $brand->catalog_per_page ?: (int) Setting::get('catalog_per_page_default', 12);
+
+        $productQuery = $brand->catalogProducts()->with('category');
+        if (! $isStaff) $productQuery->active();
+        BrandCatalogFilter::applyFilter($productQuery, $brand, $selectedSlugs);
+        $products = $productQuery->orderBy('sort_order')->orderBy('name')->paginate($perPage)->withQueryString();
+
+        $resolveImg = function ($img) {
+            if (! $img) return null;
+            if (preg_match('#^(https?:)?//#', $img)) return $img;
+            if (str_starts_with($img, 'assets/') || str_starts_with($img, 'storage/')) return asset($img);
+            return asset('storage/' . $img);
+        };
+
+        $html = view('public.catalog.partials.products-results', compact(
+            'brand', 'products', 'columns', 'resolveImg'
+        ))->render();
+
+        return response()->json([
+            'html' => $html,
+            'total' => $products->total(),
+        ]);
     }
 
     public function product(string $brandSlug, string $productSlug)
@@ -67,9 +104,13 @@ class BrandCatalogController extends Controller
         if (! $isStaff) $productQuery->active();
         $product = $productQuery->firstOrFail();
 
+        $relatedCategoryIds = $product->categories()->pluck('catalog_categories.id');
         $relatedQuery = CatalogProduct::where('brand_id', $brand->id)
             ->where('id', '!=', $product->id)
-            ->when($product->catalog_category_id, fn ($q) => $q->where('catalog_category_id', $product->catalog_category_id))
+            ->when(
+                $relatedCategoryIds->isNotEmpty(),
+                fn ($q) => $q->whereHas('categories', fn ($q2) => $q2->whereIn('catalog_categories.id', $relatedCategoryIds))
+            )
             ->orderBy('sort_order');
         if (! $isStaff) $relatedQuery->active();
         $related = $relatedQuery->limit(4)->get();

@@ -16,10 +16,13 @@ Route::post('/contacto', [PublicSite\ContactController::class, 'submit'])->name(
 Route::get('/blog', [PublicSite\BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [PublicSite\BlogController::class, 'show'])->name('blog.show');
 Route::post('/tienda-online/pedido', [PublicSite\StoreController::class, 'order'])->name('store.order');
+// AJAX product filter (multi-category). Must be before the {slug} catch-all below.
+Route::get('/tienda-online/ajax/products', [PublicSite\StoreController::class, 'filterAjax'])->name('store.filter');
 Route::get('/tienda-online/{slug}', [PublicSite\StoreController::class, 'show'])->name('store.show');
 // Note: /tienda-online (index) is handled by the catch-all PageController with block-based rendering.
 
 // Brand catalogs (escaparate por marca)
+Route::get('/catalogo/{brandSlug}/ajax/products', [PublicSite\BrandCatalogController::class, 'productsAjax'])->name('catalog.filter');
 Route::get('/catalogo/{brandSlug}', [PublicSite\BrandCatalogController::class, 'show'])->name('catalog.show');
 Route::get('/catalogo/{brandSlug}/{productSlug}', [PublicSite\BrandCatalogController::class, 'product'])->name('catalog.product');
 

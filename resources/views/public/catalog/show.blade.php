@@ -12,6 +12,8 @@
     };
     $heroSrc = $resolveImg($brand->catalog_hero_image);
     $logoSrc = $resolveImg($brand->logo);
+    $filterEndpoint = route('catalog.filter', ['brandSlug' => $brand->slug]);
+    $selectedSlugs = $selectedSlugs ?? [];
 @endphp
 
 @section('content')
@@ -39,67 +41,39 @@
     </section>
 
     {{-- Category submenu + products grid --}}
-    <section class="brand-catalog-section">
-        <div class="container">
+    <section class="brand-catalog-section"
+             x-data="productFilter({ endpoint: @js($filterEndpoint), slugs: @js($selectedSlugs), baseUrl: @js(url('catalogo/' . $brand->slug)) })">
+        <div class="container" :class="loading ? 'is-loading' : ''">
             @if($categories->count())
-                <nav class="brand-catalog-categories">
-                    <a href="{{ url('catalogo/' . $brand->slug) }}"
-                       class="brand-catalog-pill {{ !$selectedCategory ? 'is-active' : '' }}">
+                <nav class="brand-catalog-categories" aria-label="Filtro de categorías">
+                    <button type="button" @click="clear()"
+                            class="brand-catalog-pill"
+                            :class="selected.length === 0 ? 'is-active' : ''">
                         Todas
-                    </a>
+                    </button>
                     @foreach($categories as $cat)
-                        <a href="{{ url('catalogo/' . $brand->slug . '?categoria=' . $cat->slug) }}"
-                           class="brand-catalog-pill {{ $selectedCategory?->id === $cat->id ? 'is-active' : '' }}">
+                        <button type="button" @click="toggle(@js($cat->slug))"
+                                class="brand-catalog-pill"
+                                :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
                             {{ $cat->name }}
                             <span class="brand-catalog-pill-count">{{ $cat->products_count }}</span>
-                        </a>
+                        </button>
                     @endforeach
                 </nav>
             @endif
 
-            @if($selectedCategory && $selectedCategory->description)
-                <p class="brand-catalog-category-description">{{ $selectedCategory->description }}</p>
+            @if($selectedCategories->count() === 1 && $selectedCategories->first()->description)
+                <p class="brand-catalog-category-description">{{ $selectedCategories->first()->description }}</p>
             @endif
 
-            @if($products->count())
-                <div class="brand-catalog-grid" style="grid-template-columns: repeat({{ $columns }}, minmax(0, 1fr));">
-                    @foreach($products as $product)
-                        @php $src = $resolveImg($product->image); @endphp
-                        <a href="{{ url('catalogo/' . $brand->slug . '/' . $product->slug) }}" class="brand-catalog-card">
-                            <div class="brand-catalog-card-image">
-                                @if($src)
-                                    <img src="{{ $src }}" alt="{{ $product->name }}">
-                                @else
-                                    <div class="brand-catalog-card-placeholder"></div>
-                                @endif
-                            </div>
-                            <div class="brand-catalog-card-body">
-                                @if($product->category)
-                                    <span class="brand-catalog-card-category">{{ $product->category->name }}</span>
-                                @endif
-                                <h3 class="brand-catalog-card-title">{{ $product->name }}</h3>
-                                @if($product->short_description)
-                                    <p class="brand-catalog-card-desc">{{ $product->short_description }}</p>
-                                @endif
-                                <span class="brand-catalog-card-cta">Ver detalle →</span>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-
-                @if($products->hasPages())
-                    <div class="brand-catalog-pagination">
-                        {{ $products->withQueryString()->links() }}
-                    </div>
-                @endif
-            @else
-                <div class="brand-catalog-empty">
-                    <p>{{ $selectedCategory ? 'No hay productos en esta categoría todavía.' : 'Pronto vamos a sumar productos a este catálogo.' }}</p>
-                    @if($selectedCategory)
-                        <a href="{{ url('catalogo/' . $brand->slug) }}" class="brand-catalog-pill">Ver todo el catálogo</a>
-                    @endif
-                </div>
-            @endif
+            <div class="brand-catalog-results" x-ref="results" @click="onResultsClick($event)">
+                @include('public.catalog.partials.products-results', [
+                    'brand' => $brand,
+                    'products' => $products,
+                    'columns' => $columns,
+                    'resolveImg' => $resolveImg,
+                ])
+            </div>
         </div>
     </section>
 </main>
@@ -118,7 +92,9 @@
 
 .brand-catalog-section { padding: 3rem 0 5rem; background: #1a1a1a; }
 .brand-catalog-categories { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
-.brand-catalog-pill { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.2rem; background: rgba(255,255,255,0.08); color: #fff; text-decoration: none; border-radius: 99px; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); transition: all .2s ease; }
+.brand-catalog-pill { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.2rem; background: rgba(255,255,255,0.08); color: #fff; text-decoration: none; border-radius: 99px; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); transition: all .2s ease; cursor: pointer; font-family: inherit; }
+.brand-catalog-section.is-loading .brand-catalog-results, .brand-catalog-section .is-loading .brand-catalog-results { opacity: .45; transition: opacity .15s; }
+.container.is-loading .brand-catalog-results { opacity: .45; transition: opacity .15s; }
 .brand-catalog-pill:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
 .brand-catalog-pill.is-active { background: var(--color-accent, #6da339); border-color: var(--color-accent, #6da339); color: #fff; }
 .brand-catalog-pill-count { font-size: 0.75rem; opacity: 0.7; background: rgba(0,0,0,0.2); padding: 0.1rem 0.5rem; border-radius: 99px; }
@@ -154,4 +130,7 @@
 }
 </style>
 @endpush
+
+@include('partials.product-filter-script')
+
 @endsection

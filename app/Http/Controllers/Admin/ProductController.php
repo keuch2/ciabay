@@ -40,7 +40,8 @@ class ProductController extends Controller
 
         $validated['images'] = $this->uploadGallery($request);
 
-        Product::create($validated);
+        $product = Product::create($validated);
+        $product->categories()->sync($this->collectCategoryIds($request, $validated['product_category_id'] ?? null));
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Producto creado correctamente.');
@@ -86,6 +87,7 @@ class ProductController extends Controller
         $validated['images'] = array_values(array_merge($existing, $uploaded));
 
         $product->update($validated);
+        $product->categories()->sync($this->collectCategoryIds($request, $validated['product_category_id'] ?? $product->product_category_id));
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Producto actualizado correctamente.');
@@ -113,9 +115,24 @@ class ProductController extends Controller
             'image' => 'nullable|image|max:4096',
             'library_image' => 'nullable|string|max:500',
             'gallery_images.*' => 'nullable|image|max:4096',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'integer|exists:product_categories,id',
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer',
         ]);
+    }
+
+    private function collectCategoryIds(Request $request, $primary): array
+    {
+        $ids = array_map('intval', (array) $request->input('category_ids', []));
+        if ($primary) {
+            $ids[] = (int) $primary;
+        }
+        $ids = array_values(array_unique(array_filter($ids)));
+        if ($ids) {
+            $ids = \App\Models\ProductCategory::whereIn('id', $ids)->pluck('id')->all();
+        }
+        return $ids;
     }
 
     private function uploadGallery(Request $request): array

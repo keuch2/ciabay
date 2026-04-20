@@ -21,7 +21,8 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-            <label for="product_category_id" class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+            <label for="product_category_id" class="block text-sm font-medium text-gray-700 mb-1">Categoría principal</label>
+            <p class="text-xs text-gray-500 mb-1">La que aparece en la tarjeta del producto.</p>
             <select name="product_category_id" id="product_category_id"
                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <option value="">Sin categoría</option>
@@ -51,6 +52,47 @@
         </div>
     </div>
 
+    @php
+        $selectedCategoryIds = old(
+            'category_ids',
+            isset($product) && $product->exists
+                ? $product->categories()->pluck('product_categories.id')->all()
+                : []
+        );
+        $selectedCategoryIds = array_map('intval', (array) $selectedCategoryIds);
+    @endphp
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Categorías adicionales</label>
+        <p class="text-xs text-gray-500 mb-2">Marcá todas las categorías donde querés que aparezca el producto. La categoría principal ya se incluye automáticamente.</p>
+        <div class="border border-gray-200 rounded-lg p-3 max-h-72 overflow-y-auto bg-gray-50 space-y-3">
+            @foreach($categories as $cat)
+                <div>
+                    <label class="flex items-center gap-2 text-sm font-medium text-gray-800">
+                        <input type="checkbox" name="category_ids[]" value="{{ $cat->id }}"
+                               {{ in_array($cat->id, $selectedCategoryIds, true) ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-blue-600">
+                        <span>{{ $cat->name }}</span>
+                    </label>
+                    @if($cat->children->count())
+                        <div class="pl-6 mt-1 space-y-1">
+                            @foreach($cat->children->sortBy('sort_order') as $child)
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    <input type="checkbox" name="category_ids[]" value="{{ $child->id }}"
+                                           {{ in_array($child->id, $selectedCategoryIds, true) ? 'checked' : '' }}
+                                           class="rounded border-gray-300 text-blue-600">
+                                    <span>{{ $child->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+            @if($categories->isEmpty())
+                <p class="text-sm text-gray-500">No hay categorías todavía.</p>
+            @endif
+        </div>
+    </div>
+
     <div>
         <label for="whatsapp_message" class="block text-sm font-medium text-gray-700 mb-1">Mensaje WhatsApp personalizado</label>
         <input type="text" name="whatsapp_message" id="whatsapp_message" value="{{ old('whatsapp_message', $product->whatsapp_message ?? '') }}"
@@ -60,7 +102,10 @@
 
     @php
         $existingImage = $product->image ?? null;
-        $existingImages = $product->images ?? [];
+        $existingImages = array_values(array_filter(
+            $product->images ?? [],
+            fn ($img) => is_string($img) && trim($img) !== ''
+        ));
         $resolveImg = function($img) {
             if (!$img) return null;
             if (preg_match('#^(https?:)?//#', $img)) return $img;
@@ -100,11 +145,14 @@
         @if(count($existingImages))
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-3">
                 @foreach($existingImages as $img)
-                    <div class="relative" style="aspect-ratio: 1 / 1;">
-                        <img src="{{ $resolveImg($img) }}" class="absolute inset-0 w-full h-full object-cover rounded-lg border border-gray-200" alt="">
-                        <label class="absolute top-1.5 right-1.5 bg-white/95 rounded px-1.5 py-0.5 shadow cursor-pointer text-xs flex items-center gap-1">
-                            <input type="checkbox" name="remove_images[]" value="{{ $img }}" class="rounded border-gray-300 text-red-600">
-                            Quitar
+                    <div x-data="{ remove: false }" class="relative" style="aspect-ratio: 1 / 1;">
+                        <img src="{{ $resolveImg($img) }}"
+                             :style="remove ? 'opacity:0.3;filter:grayscale(1);' : ''"
+                             class="absolute inset-0 w-full h-full object-cover rounded-lg border border-gray-200 transition" alt="">
+                        <label class="absolute top-1.5 right-1.5 rounded px-2 py-1 shadow cursor-pointer text-xs flex items-center gap-1 transition"
+                               :class="remove ? 'bg-red-600 text-white' : 'bg-white/95 text-gray-700'">
+                            <input type="checkbox" name="remove_images[]" value="{{ $img }}" x-model="remove" class="rounded border-gray-300 text-red-600">
+                            <span x-text="remove ? 'Se quita' : 'Quitar'"></span>
                         </label>
                     </div>
                 @endforeach
