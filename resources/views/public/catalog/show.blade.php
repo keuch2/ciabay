@@ -61,45 +61,43 @@
             </div>
 
             @if($categories->count())
-                <nav class="brand-catalog-categories" aria-label="Filtro de categorías">
-                    @if($hasIcons)
-                        {{-- Icon-card style --}}
-                        <button type="button" @click="clear()" class="brand-catalog-icon-filter" :class="selected.length === 0 ? 'is-active' : ''">
-                            <span class="brand-catalog-icon-filter-img">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="22" height="22"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                            </span>
-                            <span class="brand-catalog-icon-filter-label">Todas</span>
-                        </button>
-                        @foreach($categories as $cat)
-                            @php $catImgSrc = $cat->image ? $resolveImg($cat->image) : null; @endphp
-                            <button type="button" @click="toggle(@js($cat->slug))" class="brand-catalog-icon-filter" :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
+                <div class="brand-catalog-cat-scroll" x-data="catScroll()" aria-label="Filtro de categorías">
+                    <button type="button" class="brand-catalog-cat-arrow" x-show="showPrev" @click="prev()" aria-label="Anterior">&#8249;</button>
+                    <div class="brand-catalog-cat-track" x-ref="track">
+                        @if($hasIcons)
+                            <button type="button" @click="clear()" class="brand-catalog-icon-filter" :class="selected.length === 0 ? 'is-active' : ''">
                                 <span class="brand-catalog-icon-filter-img">
-                                    @if($catImgSrc)
-                                        <img src="{{ $catImgSrc }}" alt="{{ $cat->name }}">
-                                    @else
-                                        <span style="font-size:1.1rem;font-weight:700;color:rgba(255,255,255,0.6);">{{ mb_substr($cat->name, 0, 1) }}</span>
-                                    @endif
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                                 </span>
-                                <span class="brand-catalog-icon-filter-label">{{ $cat->name }}</span>
+                                <span class="brand-catalog-icon-filter-label">Todas</span>
                             </button>
-                        @endforeach
-                    @else
-                        {{-- Pill style --}}
-                        <button type="button" @click="clear()"
-                                class="brand-catalog-pill"
-                                :class="selected.length === 0 ? 'is-active' : ''">
-                            Todas
-                        </button>
-                        @foreach($categories as $cat)
-                            <button type="button" @click="toggle(@js($cat->slug))"
-                                    class="brand-catalog-pill"
-                                    :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
-                                {{ $cat->name }}
-                                <span class="brand-catalog-pill-count">{{ $cat->products_count }}</span>
+                            @foreach($categories as $cat)
+                                @php $catImgSrc = $cat->image ? $resolveImg($cat->image) : null; @endphp
+                                <button type="button" @click="toggle(@js($cat->slug))" class="brand-catalog-icon-filter" :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
+                                    <span class="brand-catalog-icon-filter-img">
+                                        @if($catImgSrc)
+                                            <img src="{{ $catImgSrc }}" alt="{{ $cat->name }}">
+                                        @else
+                                            <span style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.6);">{{ mb_substr($cat->name, 0, 1) }}</span>
+                                        @endif
+                                    </span>
+                                    <span class="brand-catalog-icon-filter-label">{{ $cat->name }}</span>
+                                </button>
+                            @endforeach
+                        @else
+                            <button type="button" @click="clear()" class="brand-catalog-pill" :class="selected.length === 0 ? 'is-active' : ''">
+                                Todas
                             </button>
-                        @endforeach
-                    @endif
-                </nav>
+                            @foreach($categories as $cat)
+                                <button type="button" @click="toggle(@js($cat->slug))" class="brand-catalog-pill" :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
+                                    {{ $cat->name }}
+                                    <span class="brand-catalog-pill-count">{{ $cat->products_count }}</span>
+                                </button>
+                            @endforeach
+                        @endif
+                    </div>
+                    <button type="button" class="brand-catalog-cat-arrow" x-show="showNext" @click="next()" aria-label="Siguiente">&#8250;</button>
+                </div>
             @endif
 
             @if($selectedCategories->count() === 1 && $selectedCategories->first()->description)
@@ -142,22 +140,25 @@
 .brand-catalog-search-clear { background: none; border: none; color: rgba(255,255,255,0.45); cursor: pointer; padding: 0; line-height: 1; font-size: 1rem; }
 .brand-catalog-search-clear:hover { color: #fff; }
 
-/* Category filter */
-.brand-catalog-categories { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
-.brand-catalog-pill { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.2rem; background: rgba(255,255,255,0.08); color: #fff; text-decoration: none; border-radius: 99px; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); transition: all .2s ease; cursor: pointer; font-family: inherit; }
-.brand-catalog-section.is-loading .brand-catalog-results, .brand-catalog-section .is-loading .brand-catalog-results { opacity: .45; transition: opacity .15s; }
-.container.is-loading .brand-catalog-results { opacity: .45; transition: opacity .15s; }
+/* Category filter — scroll row */
+.brand-catalog-section.is-loading .brand-catalog-results, .container.is-loading .brand-catalog-results { opacity: .45; transition: opacity .15s; }
+.brand-catalog-cat-scroll { display: flex; align-items: center; gap: .5rem; margin-bottom: 2rem; }
+.brand-catalog-cat-track { display: flex; gap: .6rem; overflow-x: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex: 1; padding-bottom: 2px; }
+.brand-catalog-cat-track::-webkit-scrollbar { display: none; }
+.brand-catalog-cat-arrow { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.8); cursor: pointer; font-size: 1.1rem; font-family: inherit; transition: background .15s, color .15s; }
+.brand-catalog-cat-arrow:hover { background: rgba(255,255,255,0.18); color: #fff; }
+/* Pill style */
+.brand-catalog-pill { flex-shrink: 0; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.2rem; background: rgba(255,255,255,0.08); color: #fff; border-radius: 99px; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.1); transition: all .2s ease; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .brand-catalog-pill:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
 .brand-catalog-pill.is-active { background: var(--color-accent, #6da339); border-color: var(--color-accent, #6da339); color: #fff; }
 .brand-catalog-pill-count { font-size: 0.75rem; opacity: 0.7; background: rgba(0,0,0,0.2); padding: 0.1rem 0.5rem; border-radius: 99px; }
-
 /* Icon-card filter */
-.brand-catalog-icon-filter { display: flex; flex-direction: column; align-items: center; gap: .4rem; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08); border-radius: .6rem; padding: .6rem .5rem; width: 76px; cursor: pointer; transition: all .15s; font-family: inherit; color: rgba(255,255,255,0.75); }
+.brand-catalog-icon-filter { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: .4rem; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08); border-radius: .6rem; padding: .6rem .5rem; width: 72px; cursor: pointer; transition: all .15s; font-family: inherit; color: rgba(255,255,255,0.75); }
 .brand-catalog-icon-filter:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); color: #fff; }
 .brand-catalog-icon-filter.is-active { background: rgba(109,163,57,0.2); border-color: var(--color-accent, #6da339); color: #fff; }
-.brand-catalog-icon-filter-img { width: 40px; height: 40px; border-radius: .35rem; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); }
+.brand-catalog-icon-filter-img { width: 38px; height: 38px; border-radius: .35rem; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); }
 .brand-catalog-icon-filter-img img { width: 100%; height: 100%; object-fit: cover; }
-.brand-catalog-icon-filter-label { font-size: .65rem; font-weight: 600; text-align: center; line-height: 1.2; text-transform: uppercase; letter-spacing: .04em; }
+.brand-catalog-icon-filter-label { font-size: .62rem; font-weight: 600; text-align: center; line-height: 1.2; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 68px; }
 
 .brand-catalog-category-description { color: rgba(255,255,255,0.7); font-size: 0.95rem; margin-bottom: 2rem; max-width: 700px; }
 

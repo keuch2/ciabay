@@ -44,20 +44,25 @@
         .redcase-pagination nav { color: rgba(255,255,255,0.9); }
         .redcase-pagination nav a, .redcase-pagination nav span { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); }
         .redcase-pagination nav a:hover { background: rgba(255,255,255,0.12); }
-        .redcase-category-filter { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 2rem; }
+        /* Category scroll row */
+        .redcase-cat-scroll { display: flex; align-items: center; gap: .5rem; margin-bottom: 2rem; }
+        .redcase-cat-track { display: flex; gap: .6rem; overflow-x: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex: 1; padding-bottom: 2px; }
+        .redcase-cat-track::-webkit-scrollbar { display: none; }
+        .redcase-cat-arrow { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.8); cursor: pointer; font-size: 1.1rem; font-family: inherit; transition: background .15s, color .15s; }
+        .redcase-cat-arrow:hover { background: rgba(255,255,255,0.18); color: #fff; }
         /* Pill style (no images) */
-        .redcase-filter-pill { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem 1rem; border-radius: 9999px; font-size: .875rem; font-weight: 500; border: 2px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.75); background: transparent; cursor: pointer; transition: all .15s; font-family: inherit; }
+        .redcase-filter-pill { flex-shrink: 0; display: inline-flex; align-items: center; gap: .4rem; padding: .45rem 1rem; border-radius: 9999px; font-size: .875rem; font-weight: 500; border: 2px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.75); background: transparent; cursor: pointer; transition: all .15s; font-family: inherit; white-space: nowrap; }
         .redcase-filter-pill:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
         .redcase-filter-pill.is-active { background: #d32f2f; border-color: #d32f2f; color: #fff; }
         .redcase-filter-count { background: rgba(255,255,255,0.2); border-radius: 9999px; padding: .1rem .45rem; font-size: .75rem; }
         .redcase-filter-pill.is-active .redcase-filter-count { background: rgba(255,255,255,0.3); }
         /* Icon style (with images) */
-        .redcase-filter-icon { display: flex; flex-direction: column; align-items: center; gap: .4rem; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08); border-radius: .6rem; padding: .6rem .5rem; width: 76px; cursor: pointer; transition: all .15s; font-family: inherit; color: rgba(255,255,255,0.75); }
+        .redcase-filter-icon { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: .4rem; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08); border-radius: .6rem; padding: .6rem .5rem; width: 72px; cursor: pointer; transition: all .15s; font-family: inherit; color: rgba(255,255,255,0.75); }
         .redcase-filter-icon:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); color: #fff; }
         .redcase-filter-icon.is-active { background: rgba(211,47,47,0.2); border-color: #d32f2f; color: #fff; }
-        .redcase-filter-icon-img { width: 40px; height: 40px; border-radius: .35rem; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); }
+        .redcase-filter-icon-img { width: 38px; height: 38px; border-radius: .35rem; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); }
         .redcase-filter-icon-img img { width: 100%; height: 100%; object-fit: cover; }
-        .redcase-filter-icon-label { font-size: .65rem; font-weight: 600; text-align: center; line-height: 1.2; text-transform: uppercase; letter-spacing: .04em; }
+        .redcase-filter-icon-label { font-size: .62rem; font-weight: 600; text-align: center; line-height: 1.2; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 68px; }
         /* Product card */
         .redcase-products.is-loading .redcase-results { opacity: .45; transition: opacity .15s; }
         .redcase-products .redcase-product-info { padding: 1rem 1rem 1.1rem; display: flex; flex-direction: column; flex: 1; text-align: left; }
@@ -100,52 +105,48 @@
         </div>
 
         @if($showCategoryFilter && $filterCategories->count())
-            <nav class="redcase-category-filter" aria-label="Filtro de categorías">
-                @if($hasIcons)
-                    {{-- Icon-card style --}}
-                    <button type="button" @click="clear()" class="redcase-filter-icon" :class="selected.length === 0 ? 'is-active' : ''">
-                        <span class="redcase-filter-icon-img">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="22" height="22"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                        </span>
-                        <span class="redcase-filter-icon-label">Todas</span>
-                    </button>
-                    @foreach($filterCategories as $cat)
-                        @if($cat->filter_count > 0)
-                            @php $catImgSrc = $cat->image ? (preg_match('#^(https?:)?//#', $cat->image) ? $cat->image : (str_starts_with($cat->image, 'assets/') || str_starts_with($cat->image, 'storage/') ? asset($cat->image) : asset('storage/' . $cat->image))) : null; @endphp
-                            <button type="button" @click="toggle(@js($cat->slug))" class="redcase-filter-icon" :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
-                                <span class="redcase-filter-icon-img">
-                                    @if($catImgSrc)
-                                        <img src="{{ $catImgSrc }}" alt="{{ $cat->name }}">
-                                    @else
-                                        <span style="font-size:1.1rem;font-weight:700;color:rgba(255,255,255,0.6);">{{ mb_substr($cat->name, 0, 1) }}</span>
-                                    @endif
-                                </span>
-                                <span class="redcase-filter-icon-label">{{ $cat->name }}</span>
-                            </button>
-                        @endif
-                    @endforeach
-                @else
-                    {{-- Pill style (no images) --}}
-                    <button type="button"
-                            @click="clear()"
-                            class="redcase-filter-pill"
-                            :class="selected.length === 0 ? 'is-active' : ''">
-                        Todas
-                        <span class="redcase-filter-count">{{ $filterCategories->sum('filter_count') }}</span>
-                    </button>
-                    @foreach($filterCategories as $cat)
-                        @if($cat->filter_count > 0)
-                            <button type="button"
-                                    @click="toggle(@js($cat->slug))"
-                                    class="redcase-filter-pill"
-                                    :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
-                                {{ $cat->name }}
-                                <span class="redcase-filter-count">{{ $cat->filter_count }}</span>
-                            </button>
-                        @endif
-                    @endforeach
-                @endif
-            </nav>
+            <div class="redcase-cat-scroll" x-data="catScroll()" aria-label="Filtro de categorías">
+                <button type="button" class="redcase-cat-arrow" x-show="showPrev" @click="prev()" aria-label="Anterior">&#8249;</button>
+                <div class="redcase-cat-track" x-ref="track">
+                    @if($hasIcons)
+                        <button type="button" @click="clear()" class="redcase-filter-icon" :class="selected.length === 0 ? 'is-active' : ''">
+                            <span class="redcase-filter-icon-img">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="20" height="20"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                            </span>
+                            <span class="redcase-filter-icon-label">Todas</span>
+                        </button>
+                        @foreach($filterCategories as $cat)
+                            @if($cat->filter_count > 0)
+                                @php $catImgSrc = $cat->image ? (preg_match('#^(https?:)?//#', $cat->image) ? $cat->image : (str_starts_with($cat->image, 'assets/') || str_starts_with($cat->image, 'storage/') ? asset($cat->image) : asset('storage/' . $cat->image))) : null; @endphp
+                                <button type="button" @click="toggle(@js($cat->slug))" class="redcase-filter-icon" :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
+                                    <span class="redcase-filter-icon-img">
+                                        @if($catImgSrc)
+                                            <img src="{{ $catImgSrc }}" alt="{{ $cat->name }}">
+                                        @else
+                                            <span style="font-size:1rem;font-weight:700;color:rgba(255,255,255,0.6);">{{ mb_substr($cat->name, 0, 1) }}</span>
+                                        @endif
+                                    </span>
+                                    <span class="redcase-filter-icon-label">{{ $cat->name }}</span>
+                                </button>
+                            @endif
+                        @endforeach
+                    @else
+                        <button type="button" @click="clear()" class="redcase-filter-pill" :class="selected.length === 0 ? 'is-active' : ''">
+                            Todas
+                            <span class="redcase-filter-count">{{ $filterCategories->sum('filter_count') }}</span>
+                        </button>
+                        @foreach($filterCategories as $cat)
+                            @if($cat->filter_count > 0)
+                                <button type="button" @click="toggle(@js($cat->slug))" class="redcase-filter-pill" :class="selected.includes(@js($cat->slug)) ? 'is-active' : ''">
+                                    {{ $cat->name }}
+                                    <span class="redcase-filter-count">{{ $cat->filter_count }}</span>
+                                </button>
+                            @endif
+                        @endforeach
+                    @endif
+                </div>
+                <button type="button" class="redcase-cat-arrow" x-show="showNext" @click="next()" aria-label="Siguiente">&#8250;</button>
+            </div>
         @endif
 
         <div class="redcase-results" x-ref="results" @click="onResultsClick($event)">

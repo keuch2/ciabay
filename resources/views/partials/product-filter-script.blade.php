@@ -90,6 +90,28 @@
                     }
                 },
             }));
+
+            Alpine.data('catScroll', () => ({
+                showPrev: false,
+                showNext: false,
+                init() {
+                    const track = this.$refs.track;
+                    if (!track) return;
+                    this._update(track);
+                    track.addEventListener('scroll', () => this._update(track), { passive: true });
+                    new ResizeObserver(() => this._update(track)).observe(track);
+                },
+                _update(track) {
+                    this.showPrev = track.scrollLeft > 2;
+                    this.showNext = track.scrollLeft + track.clientWidth < track.scrollWidth - 2;
+                },
+                prev() {
+                    this.$refs.track.scrollBy({ left: -220, behavior: 'smooth' });
+                },
+                next() {
+                    this.$refs.track.scrollBy({ left: 220, behavior: 'smooth' });
+                },
+            }));
         });
     </script>
     @endpush
