@@ -107,6 +107,7 @@ class ProductController extends Controller
 
         return $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:100',
             'slug' => $slugRule,
             'description' => 'nullable|string|max:5000',
             'product_category_id' => 'nullable|exists:product_categories,id',

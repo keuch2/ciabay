@@ -28,11 +28,16 @@
             @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-            <input type="text" name="slug" id="slug" value="{{ old('slug', $product->slug ?? '') }}" placeholder="Auto-generado"
+            <label for="code" class="block text-sm font-medium text-gray-700 mb-1">Código <span class="text-gray-400 font-normal">(opcional)</span></label>
+            <input type="text" name="code" id="code" value="{{ old('code', $product->code ?? '') }}" placeholder="Ej: CAT-001"
                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            @error('slug') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
+    </div>
+    <div>
+        <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+        <input type="text" name="slug" id="slug" value="{{ old('slug', $product->slug ?? '') }}" placeholder="Auto-generado"
+               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        @error('slug') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

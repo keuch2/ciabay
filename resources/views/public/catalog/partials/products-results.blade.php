@@ -22,7 +22,12 @@
                     @if($product->short_description)
                         <p class="brand-catalog-card-desc">{{ $product->short_description }}</p>
                     @endif
-                    <span class="brand-catalog-card-cta">Ver detalle →</span>
+                    <div class="brand-catalog-card-footer">
+                        <span></span>
+                        <span class="brand-catalog-icon-btn" aria-label="Ver detalle">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                        </span>
+                    </div>
                 </div>
             </a>
         @endforeach

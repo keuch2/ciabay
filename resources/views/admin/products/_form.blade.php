@@ -7,10 +7,15 @@
             @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-            <input type="text" name="slug" id="slug" value="{{ old('slug', $product->slug ?? '') }}" placeholder="Auto-generado"
+            <label for="code" class="block text-sm font-medium text-gray-700 mb-1">Código <span class="text-gray-400 font-normal">(opcional — se muestra en la página del producto)</span></label>
+            <input type="text" name="code" id="code" value="{{ old('code', $product->code ?? '') }}" placeholder="Ej: RC-001"
                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
         </div>
+    </div>
+    <div>
+        <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+        <input type="text" name="slug" id="slug" value="{{ old('slug', $product->slug ?? '') }}" placeholder="Auto-generado"
+               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
     </div>
 
     <div>

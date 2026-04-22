@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="max-w-2xl">
-    <form action="{{ route('admin.product-categories.store') }}" method="POST">
+    <form action="{{ route('admin.product-categories.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @include('admin.product-categories._form')
         <div class="mt-6 flex items-center gap-4">

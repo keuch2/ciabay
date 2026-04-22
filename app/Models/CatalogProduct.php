@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class CatalogProduct extends Model
 {
     protected $fillable = [
-        'brand_id', 'catalog_category_id', 'name', 'slug',
+        'brand_id', 'catalog_category_id', 'name', 'code', 'slug',
         'short_description', 'description', 'image', 'images',
         'custom_css', 'custom_js',
         'contact_enabled', 'sort_order', 'is_active',

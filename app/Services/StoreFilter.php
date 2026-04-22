@@ -17,6 +17,14 @@ use Illuminate\Support\Collection;
 class StoreFilter
 {
     /**
+     * Parse ?q=search from the current request.
+     */
+    public static function searchFromRequest(): string
+    {
+        return trim((string) request()->query('q', ''));
+    }
+
+    /**
      * Parse ?categorias=a,b (new, multi) or ?categoria=a (legacy, single).
      *
      * @return array<int,string>  clean list of category slugs
@@ -85,6 +93,15 @@ class StoreFilter
             if ($ids) {
                 $query->whereHas('categories', fn ($q) => $q->whereIn('product_categories.id', $ids));
             }
+        }
+
+        $search = self::searchFromRequest();
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('code', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
         }
 
         return $query;

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductCategoryController extends Controller
@@ -35,6 +36,8 @@ class ProductCategoryController extends Controller
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
         }
+        $validated['image'] = $this->resolveImage($request, null);
+        unset($validated['library_image'], $validated['remove_image']);
         ProductCategory::create($validated);
 
         return redirect()->route('admin.product-categories.index')
@@ -50,6 +53,8 @@ class ProductCategoryController extends Controller
     public function update(Request $request, ProductCategory $productCategory)
     {
         $validated = $this->validateCategory($request, $productCategory);
+        $validated['image'] = $this->resolveImage($request, $productCategory);
+        unset($validated['library_image'], $validated['remove_image']);
         $productCategory->update($validated);
 
         return redirect()->route('admin.product-categories.index')
@@ -79,6 +84,29 @@ class ProductCategoryController extends Controller
             'slug' => $slugRule,
             'sort_order' => 'nullable|integer',
             'parent_id' => 'nullable|exists:product_categories,id',
+            'image' => 'nullable|image|max:4096',
+            'library_image' => 'nullable|string|max:500',
+            'remove_image' => 'nullable|boolean',
         ]);
+    }
+
+    private function resolveImage(Request $request, ?ProductCategory $category): ?string
+    {
+        if ($request->hasFile('image')) {
+            if ($category && $category->image && ! str_starts_with($category->image, 'assets/')) {
+                Storage::disk('public')->delete($category->image);
+            }
+            return $request->file('image')->store('product-categories', 'public');
+        }
+        if ($request->filled('library_image')) {
+            return ltrim($request->input('library_image'), '/');
+        }
+        if ($request->boolean('remove_image')) {
+            if ($category && $category->image && ! str_starts_with($category->image, 'assets/')) {
+                Storage::disk('public')->delete($category->image);
+            }
+            return null;
+        }
+        return $category?->image;
     }
 }

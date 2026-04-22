@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="max-w-2xl">
-    <form action="{{ route('admin.product-categories.update', $category) }}" method="POST">
+    <form action="{{ route('admin.product-categories.update', $category) }}" method="POST" enctype="multipart/form-data">
         @csrf @method('PUT')
         @include('admin.product-categories._form')
         <div class="mt-6 flex items-center gap-4">

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductCategory extends Model
 {
-    protected $fillable = ['name', 'slug', 'sort_order', 'parent_id'];
+    protected $fillable = ['name', 'slug', 'sort_order', 'parent_id', 'image'];
 
     /**
      * Products that have this as their primary category (legacy FK).

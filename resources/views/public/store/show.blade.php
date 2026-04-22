@@ -68,6 +68,10 @@
                         <div class="product-price">Gs. {{ number_format((int) $product->price, 0, ',', '.') }}</div>
                     @endif
 
+                    @if($product->code)
+                        <p class="product-code">Ref: {{ $product->code }}</p>
+                    @endif
+
                     @if($product->description)
                         <div class="product-description">
                             {!! nl2br(e($product->description)) !!}
@@ -100,12 +104,17 @@
                                     <div style="width:100%;height:100%;background:#f3f4f6;"></div>
                                 @endif
                             </div>
-                            <div class="redcase-product-info">
-                                <h3 class="redcase-product-name">{{ $rel->name }}</h3>
+                            <div class="redcase-product-info" style="display:flex;flex-direction:column;flex:1;text-align:left;padding:1rem;">
                                 @if($rel->category)
                                     <span class="redcase-product-category">{{ $rel->category->name }}</span>
                                 @endif
-                                <span class="redcase-product-btn">Ver Detalles</span>
+                                <h3 class="redcase-product-name" style="flex:1;">{{ $rel->name }}</h3>
+                                <div class="redcase-product-footer">
+                                    <span></span>
+                                    <span class="redcase-icon-btn" aria-label="Ver detalles">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                                    </span>
+                                </div>
                             </div>
                         </a>
                     @endforeach
@@ -136,13 +145,18 @@
 .product-info { padding-top: 0.5rem; }
 .product-category { display: inline-block; background: rgba(255,255,255,0.1); color: #fff; padding: 0.35rem 0.8rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1rem; }
 .product-title { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.15; }
-.product-price { font-size: 1.75rem; font-weight: 700; color: var(--color-accent, #6da339); margin-bottom: 1.5rem; }
+.product-price { font-size: 1.75rem; font-weight: 700; color: var(--color-accent, #6da339); margin-bottom: .75rem; }
+.product-code { font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; margin-bottom: 1.25rem; }
 .product-description { color: rgba(255,255,255,0.8); line-height: 1.7; margin-bottom: 2rem; font-size: 1rem; }
 .product-whatsapp-btn { display: inline-flex; align-items: center; gap: 0.75rem; background: #25D366; color: #fff; padding: 1rem 2rem; border-radius: 99px; font-weight: 700; font-size: 1.05rem; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35); }
 .product-whatsapp-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45); }
 .product-whatsapp-btn svg { flex-shrink: 0; }
 .product-whatsapp-hint { font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-top: 0.85rem; }
 .product-related { padding: 3rem 0 5rem; background: #1a1a1a; }
+.redcase-product-footer { display:flex;align-items:center;justify-content:space-between;margin-top:.5rem;gap:.5rem; }
+.redcase-icon-btn { display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#d32f2f;color:#fff;flex-shrink:0;transition:background .15s,transform .15s; }
+.redcase-product-card:hover .redcase-icon-btn { background:#b71c1c;transform:scale(1.08); }
+.redcase-icon-btn svg { width:16px;height:16px; }
 @media (max-width: 768px) {
     .product-detail-grid { grid-template-columns: 1fr; gap: 1.5rem; }
     .product-title { font-size: 1.5rem; }

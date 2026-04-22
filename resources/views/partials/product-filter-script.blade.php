@@ -6,6 +6,8 @@
                 endpoint,
                 baseUrl,
                 selected: Array.isArray(slugs) ? [...slugs] : [],
+                search: '',
+                searchTimer: null,
                 loading: false,
                 init() {
                     this.syncFromUrl();
@@ -18,12 +20,15 @@
                     const u = new URL(window.location);
                     const raw = u.searchParams.get('categorias') || u.searchParams.get('categoria') || '';
                     this.selected = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
+                    this.search = u.searchParams.get('q') || '';
                 },
                 pushUrl(page = 1) {
                     const u = new URL(window.location);
                     u.searchParams.delete('categoria');
                     if (this.selected.length) u.searchParams.set('categorias', this.selected.join(','));
                     else u.searchParams.delete('categorias');
+                    if (this.search.trim()) u.searchParams.set('q', this.search.trim());
+                    else u.searchParams.delete('q');
                     if (page > 1) u.searchParams.set('page', String(page));
                     else u.searchParams.delete('page');
                     history.pushState(null, '', u);
@@ -40,10 +45,21 @@
                     this.pushUrl(1);
                     await this.fetchResults();
                 },
+                onSearchInput() {
+                    clearTimeout(this.searchTimer);
+                    this.searchTimer = setTimeout(() => {
+                        this.pushUrl(1);
+                        this.fetchResults();
+                    }, 320);
+                },
+                onSearchClear() {
+                    this.search = '';
+                    this.pushUrl(1);
+                    this.fetchResults();
+                },
                 onResultsClick(ev) {
                     const a = ev.target.closest('a[href]');
                     if (!a) return;
-                    // Only intercept pagination links (inside the pagination nav)
                     if (!a.closest('.redcase-pagination, .brand-catalog-pagination')) return;
                     ev.preventDefault();
                     const u = new URL(a.href);
@@ -57,6 +73,7 @@
                     try {
                         const params = new URLSearchParams();
                         if (this.selected.length) params.set('categorias', this.selected.join(','));
+                        if (this.search.trim()) params.set('q', this.search.trim());
                         const page = new URL(window.location).searchParams.get('page');
                         if (page) params.set('page', page);
                         const sep = this.endpoint.includes('?') ? '&' : '?';

@@ -79,6 +79,10 @@
                         <p class="catalog-short">{{ $product->short_description }}</p>
                     @endif
 
+                    @if($product->code)
+                        <p class="catalog-code">Ref: {{ $product->code }}</p>
+                    @endif
+
                     @if($product->description)
                         <div class="catalog-description">
                             {!! nl2br(e($product->description)) !!}
@@ -117,8 +121,13 @@
                                 @if($rel->category)
                                     <span class="brand-catalog-card-category">{{ $rel->category->name }}</span>
                                 @endif
-                                <h3 class="brand-catalog-card-title">{{ $rel->name }}</h3>
-                                <span class="brand-catalog-card-cta">Ver detalle →</span>
+                                <h3 class="brand-catalog-card-title" style="flex:1;">{{ $rel->name }}</h3>
+                                <div class="brand-catalog-card-footer">
+                                    <span></span>
+                                    <span class="brand-catalog-icon-btn" aria-label="Ver detalle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                                    </span>
+                                </div>
                             </div>
                         </a>
                     @endforeach
@@ -154,7 +163,8 @@
 .catalog-info { padding-top: 0.5rem; }
 .catalog-category { display: inline-block; background: rgba(255,255,255,0.1); color: #fff; padding: 0.35rem 0.8rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1rem; }
 .catalog-title { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 1rem; line-height: 1.15; }
-.catalog-short { font-size: 1.05rem; color: rgba(255,255,255,0.9); margin-bottom: 1.25rem; font-weight: 500; }
+.catalog-short { font-size: 1.05rem; color: rgba(255,255,255,0.9); margin-bottom: .75rem; font-weight: 500; }
+.catalog-code { font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; margin-bottom: 1.25rem; }
 .catalog-description { color: rgba(255,255,255,0.75); line-height: 1.7; margin-bottom: 2rem; font-size: 0.98rem; }
 
 .catalog-contact-btn { display: inline-flex; align-items: center; gap: 0.75rem; background: #25D366; color: #fff; padding: 1rem 2rem; border-radius: 99px; font-weight: 700; font-size: 1.05rem; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35); }
@@ -162,6 +172,10 @@
 
 .catalog-related { padding: 3rem 0 5rem; background: #1a1a1a; border-top: 1px solid rgba(255,255,255,0.08); }
 .catalog-related-title { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1.5rem; }
+.brand-catalog-card-footer { display:flex;align-items:center;justify-content:space-between;margin-top:auto; }
+.brand-catalog-icon-btn { display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:var(--color-accent,#6da339);color:#fff;flex-shrink:0;transition:filter .15s,transform .15s; }
+.brand-catalog-card:hover .brand-catalog-icon-btn { filter:brightness(1.15);transform:scale(1.08); }
+.brand-catalog-icon-btn svg { width:16px;height:16px; }
 
 @media (max-width: 768px) {
     .catalog-product-grid { grid-template-columns: 1fr; gap: 1.5rem; }

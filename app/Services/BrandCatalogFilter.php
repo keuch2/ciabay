@@ -16,6 +16,14 @@ use Illuminate\Support\Collection;
 class BrandCatalogFilter
 {
     /**
+     * Parse ?q=search from the current request.
+     */
+    public static function searchFromRequest(): string
+    {
+        return trim((string) request()->query('q', ''));
+    }
+
+    /**
      * @return array<int,string>
      */
     public static function slugsFromRequest(): array
@@ -52,6 +60,17 @@ class BrandCatalogFilter
             $ids = $resolved->pluck('id')->all();
             $query->whereHas('categories', fn ($q) => $q->whereIn('catalog_categories.id', $ids));
         }
+
+        $search = self::searchFromRequest();
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('code', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%')
+                  ->orWhere('short_description', 'like', '%' . $search . '%');
+            });
+        }
+
         return $query;
     }
 }

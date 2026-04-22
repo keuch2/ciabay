@@ -135,6 +135,7 @@ class CatalogProductController extends Controller
 
         return $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:100',
             'slug' => $slugRule,
             'catalog_category_id' => 'nullable|integer|exists:catalog_categories,id',
             'catalog_category_ids' => 'nullable|array',
