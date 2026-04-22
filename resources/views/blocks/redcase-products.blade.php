@@ -39,7 +39,7 @@
          x-data="productFilter({ endpoint: @js($endpoint), slugs: @js($filterSlugs), baseUrl: @js(url('tienda-online')) })">
     <style>
         .redcase-products-grid { display: grid; grid-template-columns: repeat({{ $storeColumns }}, minmax(0, 1fr)); gap: 1.5rem; }
-        @media (max-width: 900px) { .redcase-products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 900px) { .redcase-products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
         .redcase-pagination { margin-top: 2.5rem; display: flex; justify-content: center; }
         .redcase-pagination nav { color: rgba(255,255,255,0.9); }
         .redcase-pagination nav a, .redcase-pagination nav span { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); }
