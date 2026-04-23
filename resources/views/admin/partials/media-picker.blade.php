@@ -7,7 +7,8 @@
      @keydown.escape.window="close()"
      class="fixed inset-0 z-[9998] flex items-center justify-center p-4"
      style="background: rgba(0,0,0,0.5);">
-    <div @click.outside="close()" class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div @click.outside="close()" class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl"
+         style="max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div>
                 <h3 class="text-lg font-semibold text-gray-800">Biblioteca de Media</h3>
@@ -49,15 +50,17 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div class="p-6 bg-gray-50" style="flex: 1 1 auto; overflow-y: auto; min-height: 0;">
             <div x-show="loading" class="text-center text-sm text-gray-500 py-8">Cargando biblioteca…</div>
             <div x-show="!loading && filtered().length === 0" class="text-center text-sm text-gray-500 py-8">Sin resultados.</div>
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
                 <template x-for="file in filtered()" :key="file.path">
                     <button type="button" @click="pick(file)"
-                            class="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-blue-500 hover:shadow-md transition text-left">
-                        <div class="w-full bg-gray-50" style="aspect-ratio: 1/1;">
-                            <img :src="file.url" class="w-full h-full object-contain" alt="">
+                            class="group bg-white rounded-lg border border-gray-200 hover:border-blue-500 hover:shadow-md transition text-left"
+                            style="overflow: hidden;">
+                        <div class="bg-gray-50" style="width: 100%; aspect-ratio: 1/1;">
+                            <img :src="file.url" loading="lazy" alt=""
+                                 style="width: 100%; height: 100%; object-fit: contain; display: block;">
                         </div>
                         <div class="px-2 py-1.5">
                             <p class="text-xs text-gray-700 truncate" :title="file.path" x-text="file.path.split('/').pop()"></p>
