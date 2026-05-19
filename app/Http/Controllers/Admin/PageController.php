@@ -173,6 +173,7 @@ class PageController extends Controller
             'branches-cards' => 'Sucursales (cards)',
             'branches-map' => 'Sucursales + Mapa',
             'map-embed' => 'Mapa (iframe embed)',
+            'iframe' => 'Iframe (embebido)',
             'contact-info' => 'Contacto (info + formulario)',
             'contact-form' => 'Formulario Contacto (solo form)',
             'gallery' => 'Galería de Imágenes',
