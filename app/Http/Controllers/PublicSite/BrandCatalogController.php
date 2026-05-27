@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\PublicSite;
 
 use App\Http\Controllers\Controller;
+use App\Models\Block;
 use App\Models\Brand;
 use App\Models\CatalogProduct;
 use App\Models\Setting;
@@ -88,6 +89,63 @@ class BrandCatalogController extends Controller
         return response()->json([
             'html' => $html,
             'total' => $products->total(),
+        ]);
+    }
+
+    /**
+     * AJAX endpoint for the brand-catalog page block. Same shape as productsAjax
+     * but the product set is shaped by the block's stored data (source/category/manual).
+     */
+    public function blockProductsAjax(string $brandSlug, Request $request)
+    {
+        $isStaff = auth()->check() && auth()->user()->isStaff();
+        $brand = Brand::where('slug', $brandSlug)->firstOrFail();
+        if (! $brand->catalog_enabled && ! $isStaff) abort(404);
+
+        $blockId = (int) $request->query('block', 0);
+        if ($blockId < 1) abort(400, 'missing block id');
+
+        $block = Block::where('type', 'brand-catalog')->findOrFail($blockId);
+        $data = $block->data ?? [];
+        if ((int) ($data['brand_id'] ?? 0) !== $brand->id) {
+            abort(404);
+        }
+
+        $perPage = !empty($data['per_page']) ? (int) $data['per_page'] : (int) Setting::get('catalog_per_page_default', 12);
+        $columns = !empty($data['columns']) ? (int) $data['columns'] : (int) Setting::get('catalog_columns_default', 4);
+        if ($perPage < 1) $perPage = 12;
+        if ($columns < 1 || $columns > 6) $columns = 4;
+
+        $source = $data['source'] ?? 'all';
+        $showCategoryFilter = (bool) ($data['show_category_filter'] ?? true);
+        $filterSlugs = ($source !== 'manual' && $showCategoryFilter) ? BrandCatalogFilter::slugsFromRequest() : [];
+
+        $query = BrandCatalogFilter::applyBlockFilter($brand, $data, $isStaff, $filterSlugs);
+
+        if ($source === 'manual') {
+            // Manual mode does not paginate; AJAX is rarely useful but we still
+            // return the rendered grid so the partial signature stays consistent.
+            $products = $query->get();
+        } else {
+            $products = $query->paginate($perPage)->withQueryString();
+        }
+
+        $resolveImg = function ($img) {
+            if (! $img) return null;
+            if (preg_match('#^(https?:)?//#', $img)) return $img;
+            if (str_starts_with($img, 'assets/') || str_starts_with($img, 'storage/')) return asset($img);
+            return asset('storage/' . $img);
+        };
+
+        $html = view('public.catalog.partials.products-results', compact(
+            'brand', 'products', 'columns', 'resolveImg'
+        ))->render();
+
+        $total = $source === 'manual' ? $products->count() : $products->total();
+
+        return response()->json([
+            'html' => $html,
+            'total' => $total,
         ]);
     }
 

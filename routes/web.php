@@ -23,6 +23,7 @@ Route::get('/tienda-online/{slug}', [PublicSite\StoreController::class, 'show'])
 
 // Brand catalogs (escaparate por marca)
 Route::get('/catalogo/{brandSlug}/ajax/products', [PublicSite\BrandCatalogController::class, 'productsAjax'])->name('catalog.filter');
+Route::get('/catalogo/{brandSlug}/ajax/block', [PublicSite\BrandCatalogController::class, 'blockProductsAjax'])->name('catalog.block-filter');
 Route::get('/catalogo/{brandSlug}', [PublicSite\BrandCatalogController::class, 'show'])->name('catalog.show');
 Route::get('/catalogo/{brandSlug}/{productSlug}', [PublicSite\BrandCatalogController::class, 'product'])->name('catalog.product');
 

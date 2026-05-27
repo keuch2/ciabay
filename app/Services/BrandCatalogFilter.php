@@ -73,4 +73,51 @@ class BrandCatalogFilter
 
         return $query;
     }
+
+    /**
+     * Build a CatalogProduct query scoped by a brand-catalog block's data.
+     *
+     * Block data shape:
+     *   source        => 'all' | 'category' | 'manual'
+     *   category_ids  => int[]  (used when source = 'category')
+     *   product_ids   => int[]  (used when source = 'manual', preserves order)
+     *
+     * URL slug filters and ?q= search apply on top of 'all' and 'category'
+     * modes; manual mode shows exactly the picked products in the picked order.
+     *
+     * @param  array<string,mixed>  $data
+     * @param  array<int,string>  $filterSlugs
+     */
+    public static function applyBlockFilter(Brand $brand, array $data, bool $isStaff, array $filterSlugs = [])
+    {
+        $source = $data['source'] ?? 'all';
+        $query = $brand->catalogProducts()->with('category');
+
+        if (! $isStaff) $query->active();
+
+        if ($source === 'manual') {
+            $ids = array_values(array_filter(array_map('intval', (array) ($data['product_ids'] ?? []))));
+            if (! $ids) {
+                $query->whereRaw('1 = 0');
+                return $query;
+            }
+            $query->whereIn('id', $ids);
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $query->orderByRaw("FIELD(id, $placeholders)", $ids);
+            return $query;
+        }
+
+        if ($source === 'category') {
+            $catIds = array_values(array_filter(array_map('intval', (array) ($data['category_ids'] ?? []))));
+            if ($catIds) {
+                $query->whereHas('categories', fn ($q) => $q->whereIn('catalog_categories.id', $catIds));
+            }
+        }
+
+        // URL-driven slug + search filters layer on top.
+        self::applyFilter($query, $brand, $filterSlugs);
+
+        $query->orderBy('sort_order')->orderBy('name');
+        return $query;
+    }
 }

@@ -33,7 +33,7 @@
         @endforeach
     </div>
 
-    @if($products->hasPages())
+    @if($products instanceof \Illuminate\Contracts\Pagination\Paginator && $products->hasPages())
         <div class="brand-catalog-pagination">
             {{ $products->withQueryString()->links() }}
         </div>

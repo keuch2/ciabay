@@ -183,6 +183,8 @@ class PageController extends Controller
             'redcase-hero' => 'Red Case IH — Hero',
             'redcase-products' => 'Red Case IH — Productos',
             'redcase-cta' => 'Red Case IH — CTA WhatsApp',
+            // Catálogos por marca
+            'brand-catalog' => 'Catálogo de marca (embebido)',
         ];
     }
 }
