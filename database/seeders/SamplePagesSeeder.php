@@ -210,11 +210,15 @@ class SamplePagesSeeder extends Seeder
 
     private function seedSucursales(): void
     {
+        // Renderiza con la plantilla hard-coded del mapa interactivo
+        // (resources/views/public/sucursales.blade.php); los bloques de abajo
+        // quedan como respaldo y se usan si se vuelve a "Por defecto (bloques)".
         $page = $this->page('sucursales', [
             'title' => 'Sucursales',
+            'template' => 'sucursales',
             'status' => 'published',
-            'meta_title' => 'Sucursales Ciabay | 8 Sucursales en Paraguay',
-            'meta_description' => 'Encontrá la sucursal Ciabay más cercana. 8 puntos de venta y servicio técnico en todo Paraguay.',
+            'meta_title' => 'Sucursales | CIABAY — Presentes en las principales zonas productivas del país',
+            'meta_description' => 'Red de sucursales CIABAY en Paraguay: 8 sucursales en 6 departamentos. Encontrá la más cercana a tu zona productiva.',
             'sort_order' => 3,
         ]);
 

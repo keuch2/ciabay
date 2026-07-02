@@ -1,0 +1,286 @@
+/* ============================================================
+   Página Sucursales — plantilla "sucursales" (mapa interactivo)
+   Origen: nuevo_sucursales.html, scopeado bajo .sucursales-v2
+   para convivir con el layout público (styles.css).
+   Cambios respecto al original:
+   - :root/body/* → .sucursales-v2 (variables y reset scopeados)
+   - Decoraciones fixed → absolute + overflow:clip en el wrapper
+     (clip no rompe el sticky de .map-col; hidden sí lo haría)
+   - Reglas header/.nav/footer del original eliminadas (los
+     provee el layout del sitio)
+   - .map-col sticky con offset por el header sticky del sitio
+   - #tip queda fixed con z-index sobre el header (como en el
+     original, donde el tooltip pintaba sobre su propio header)
+   ============================================================ */
+
+.sucursales-v2{
+  --bg0:#eef0f4;
+  --bg1:#e7eaf0;
+  --panel:#ffffff;
+  --panel2:#f7f9fc;
+  --line:rgba(18,38,92,.14);
+  --azul:#16368e;
+  --azul-vivo:#2b62e8;
+  --azul-dep:#1d47ad;
+  --azul-mudo:#152a5e;
+  --gris-dep:#d8dce3;
+  --gris-dep-h:#c7ccd7;
+  --verde:#79b943;
+  --verde-claro:#a8e264;
+  --verde-osc:#4c8a1f;
+  --verde-hover:#8ac951;
+  --rojo:#d0202f;
+  --tinta:#0e1b3d;
+  --tinta2:#3d4b73;
+  --tinta3:#67759b;
+  --radius:18px;
+  --font-d:'Archivo',system-ui,'Segoe UI',sans-serif;
+  --font-m:'IBM Plex Mono',ui-monospace,'Cascadia Mono',monospace;
+}
+.sucursales-v2, .sucursales-v2 *{margin:0;padding:0;box-sizing:border-box}
+.sucursales-v2{
+  font-family:var(--font-d);
+  background:
+    radial-gradient(1100px 600px at 78% -10%, rgba(43,98,232,.10), transparent 60%),
+    radial-gradient(900px 700px at -10% 108%, rgba(121,185,67,.12), transparent 55%),
+    var(--bg0);
+  color:var(--tinta);
+  line-height:normal;
+  min-height:100vh;
+  position:relative;
+  overflow:clip;
+}
+/* surcos de campo: textura sutil de líneas diagonales */
+.sucursales-v2::before{
+  content:"";
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(-14deg, rgba(22,54,142,.05) 0 1px, transparent 1px 90px);
+}
+.sucursales-v2 .wrap{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:0 clamp(18px,3.4vw,44px)}
+
+/* mundo visto desde arriba: retícula de meridianos y paralelos */
+.sucursales-v2 .globe{position:absolute;z-index:0;pointer-events:none;fill:none;stroke:var(--azul);opacity:.045}
+.sucursales-v2 .globe-a{width:min(64vw,940px);height:min(64vw,940px);top:-22vh;right:-16vw}
+.sucursales-v2 .globe-b{width:min(42vw,600px);height:min(42vw,600px);bottom:-18vh;left:-12vw;opacity:.035}
+@media (max-width:980px){.sucursales-v2 .globe-a{width:120vw;height:120vw;top:-34vw;right:-54vw}.sucursales-v2 .globe-b{display:none}}
+
+/* globo conectado del hero */
+.sucursales-v2 .hero{position:relative}
+.sucursales-v2 .hero > *{position:relative;z-index:1}
+.sucursales-v2 #globo3d{
+  position:absolute;right:-14vw;top:-70px;z-index:0;
+  width:min(78vw,980px);height:min(78vw,980px);
+  pointer-events:none;opacity:.5;
+}
+.sucursales-v2 .main{position:relative;z-index:1}
+@media (max-width:980px){.sucursales-v2 #globo3d{width:140vw;height:140vw;right:-55vw;top:-40px;opacity:.38}}
+
+/* ---------- hero ---------- */
+.sucursales-v2 .hero{padding:clamp(44px,7vh,86px) 0 clamp(20px,3vh,34px);text-align:left}
+.sucursales-v2 .eyebrow{
+  font-family:var(--font-m);font-size:.76rem;font-weight:600;letter-spacing:.34em;
+  color:var(--verde-osc);text-transform:uppercase;display:flex;align-items:center;gap:14px;
+}
+.sucursales-v2 .eyebrow::before{content:"";width:44px;height:2px;background:var(--verde);display:inline-block}
+.sucursales-v2 h1{
+  margin-top:18px;
+  color:var(--tinta);
+  font-family:var(--font-d);
+  font-weight:830;font-stretch:118%;
+  font-size:clamp(2.6rem,6.2vw,4.8rem);
+  line-height:.98;letter-spacing:-.015em;text-transform:uppercase;
+}
+.sucursales-v2 h1 .arc-word{position:relative;display:inline-block;color:var(--tinta)}
+.sucursales-v2 h1 .arc-word svg{position:absolute;left:-1%;right:-1%;bottom:-.24em;width:102%;height:.34em;overflow:visible}
+.sucursales-v2 .hero p.sub{
+  margin-top:22px;max-width:560px;font-size:clamp(1rem,1.4vw,1.16rem);
+  line-height:1.65;color:var(--tinta2);font-weight:400;
+}
+.sucursales-v2 .stats{display:flex;flex-wrap:wrap;gap:0;margin-top:40px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sucursales-v2 .stat{padding:20px 40px 20px 0;margin-right:40px;position:relative}
+.sucursales-v2 .stat:not(:last-child)::after{content:"";position:absolute;right:0;top:22%;height:56%;width:1px;background:var(--line)}
+.sucursales-v2 .stat .n{font-family:var(--font-m);font-weight:600;font-size:clamp(1.7rem,2.8vw,2.3rem);color:var(--tinta)}
+.sucursales-v2 .stat .n em{font-style:normal;color:var(--verde-osc)}
+.sucursales-v2 .stat .l{font-family:var(--font-m);font-size:.68rem;letter-spacing:.22em;color:var(--tinta3);margin-top:6px;text-transform:uppercase}
+
+/* ---------- layout principal ---------- */
+.sucursales-v2 .main{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:clamp(24px,3.4vw,56px);align-items:start;padding:clamp(28px,4vh,52px) 0 clamp(46px,8vh,90px)}
+/* top compensa el header sticky del sitio (~67px + margen) */
+.sucursales-v2 .map-col{position:sticky;top:96px}
+.sucursales-v2 .map-hint{
+  display:flex;align-items:center;gap:10px;margin-bottom:6px;
+  font-family:var(--font-m);font-size:.74rem;letter-spacing:.1em;color:var(--tinta3);
+}
+.sucursales-v2 .map-hint .dotpulse{width:9px;height:9px;border-radius:50%;background:var(--verde);box-shadow:0 0 0 0 rgba(121,185,67,.6);animation:suc-hintpulse 2.2s infinite}
+@keyframes suc-hintpulse{70%{box-shadow:0 0 0 11px rgba(121,185,67,0)}100%{box-shadow:0 0 0 0 rgba(121,185,67,0)}}
+.sucursales-v2 #mapa{width:100%;height:auto;display:block;user-select:none;-webkit-tap-highlight-color:transparent}
+
+.sucursales-v2 .dep{
+  fill:var(--gris-dep);stroke:#fff;stroke-width:1.6;stroke-linejoin:round;
+  transition:fill .25s,opacity .3s,filter .3s;cursor:pointer;outline:none;
+}
+.sucursales-v2 .dep.has{fill:var(--verde)}
+.sucursales-v2 .dep:hover{fill:var(--gris-dep-h)}
+.sucursales-v2 .dep.has:hover{fill:var(--verde-hover)}
+.sucursales-v2 .dep.on{fill:url(#gradSel) !important;stroke:#0b1637;stroke-width:2;filter:drop-shadow(0 0 14px rgba(14,27,61,.45))}
+.sucursales-v2 .dep:focus-visible{stroke:var(--verde-osc);stroke-width:3}
+.sucursales-v2 #mapa.focus .dep:not(.on){opacity:.38}
+.sucursales-v2 #mapa.focus .pin:not(.on){opacity:.25}
+.sucursales-v2 #mapa.focus .dep-label:not(.on){opacity:.2}
+
+.sucursales-v2 .pin{cursor:pointer;transition:opacity .3s}
+.sucursales-v2 .pin .halo{fill:rgba(22,54,142,.30);transform-box:fill-box;transform-origin:center;animation:suc-halo 2.4s ease-out infinite}
+@keyframes suc-halo{0%{transform:scale(.55);opacity:.9}75%{transform:scale(1.9);opacity:0}100%{transform:scale(1.9);opacity:0}}
+.sucursales-v2 .pin .core{fill:var(--azul);stroke:#fff;stroke-width:1.8;transition:r .2s}
+.sucursales-v2 .pin.mz .core{fill:#fff;stroke:var(--rojo);stroke-width:2.4}
+.sucursales-v2 .pin.mz .halo{fill:rgba(208,32,47,.38)}
+.sucursales-v2 .pin:hover .core{r:8}
+.sucursales-v2 .dep-label{
+  font-family:var(--font-m);font-size:9.6px;font-weight:600;letter-spacing:.1em;
+  fill:#8a94ab;pointer-events:none;transition:opacity .3s;
+}
+.sucursales-v2 .dep-label.act{font-size:11.4px;letter-spacing:.12em;fill:#17400d}
+.sucursales-v2 .dep-label .num{font-size:13.2px;font-weight:700}
+.sucursales-v2 .dep-label.on{fill:#fff}
+.sucursales-v2 .geo-label{font-family:var(--font-m);fill:#9aa6c1;pointer-events:none;letter-spacing:.35em}
+.sucursales-v2 .asu-label{font-family:var(--font-m);font-size:8.5px;fill:#4f5f8a;pointer-events:none}
+
+.sucursales-v2 .legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:2px;padding-top:14px;border-top:1px dashed var(--line)}
+.sucursales-v2 .legend span{display:flex;align-items:center;gap:8px;font-family:var(--font-m);font-size:.68rem;letter-spacing:.08em;color:var(--tinta3)}
+.sucursales-v2 .legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.sucursales-v2 .legend i.c1{background:var(--verde)}
+.sucursales-v2 .legend i.c2{border-radius:50%;background:var(--azul);border:2px solid #fff;width:10px;height:10px}
+.sucursales-v2 .legend i.c3{border-radius:50%;background:#fff;border:2.5px solid var(--rojo);width:9px;height:9px}
+
+/* tooltip (fixed: sigue al cursor con coordenadas de viewport) */
+.sucursales-v2 #tip{
+  position:fixed;z-index:1500;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 14px));
+  background:#fff;color:#0b1637;border-radius:10px;padding:8px 13px;
+  font-size:.8rem;font-weight:600;white-space:nowrap;border:1px solid var(--line);box-shadow:0 10px 30px rgba(15,28,70,.16);
+  transition:opacity .15s;
+}
+.sucursales-v2 #tip small{display:block;font-family:var(--font-m);font-weight:500;font-size:.62rem;letter-spacing:.06em;color:#5b6f9e;margin-top:2px}
+.sucursales-v2 #tip.show{opacity:1}
+.sucursales-v2 #tip::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#fff}
+
+/* ---------- panel ---------- */
+.sucursales-v2 .chips{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:22px}
+.sucursales-v2 .chip{
+  font-family:var(--font-m);font-size:.72rem;font-weight:500;letter-spacing:.09em;
+  color:var(--tinta2);background:transparent;border:1px solid var(--line);
+  border-radius:999px;padding:8px 15px;cursor:pointer;transition:all .2s;text-transform:uppercase;
+}
+.sucursales-v2 .chip b{color:var(--verde-osc);font-weight:600;margin-left:5px}
+.sucursales-v2 .chip:hover{border-color:var(--verde);color:var(--tinta)}
+.sucursales-v2 .chip.on{background:var(--verde);border-color:var(--verde);color:#0b1a08;font-weight:600}
+.sucursales-v2 .chip.on b{color:#0b1a08}
+
+.sucursales-v2 .panel-head{margin-bottom:20px}
+.sucursales-v2 .panel-head .k{font-family:var(--font-m);font-size:.68rem;letter-spacing:.28em;color:var(--tinta3);text-transform:uppercase}
+.sucursales-v2 .panel-head h2{
+  color:var(--tinta);font-family:var(--font-d);
+  font-size:clamp(1.7rem,2.6vw,2.35rem);font-weight:800;font-stretch:114%;
+  text-transform:uppercase;letter-spacing:-.01em;margin-top:6px;line-height:1.05;
+}
+.sucursales-v2 .panel-head h2 span.cnt{
+  font-family:var(--font-m);font-size:.85rem;font-weight:600;color:var(--verde-osc);
+  vertical-align:.9em;margin-left:10px;letter-spacing:.06em;
+}
+
+.sucursales-v2 .cards{display:flex;flex-direction:column;gap:18px}
+.sucursales-v2 .card{
+  background:linear-gradient(160deg,var(--panel2),var(--panel));
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+  box-shadow:0 8px 22px rgba(16,32,80,.06);
+  transition:transform .3s,border-color .3s,box-shadow .3s;
+  opacity:0;transform:translateY(14px);animation:suc-up .5s forwards;
+}
+.sucursales-v2 .card:nth-child(2){animation-delay:.07s}
+.sucursales-v2 .card:nth-child(3){animation-delay:.14s}
+.sucursales-v2 .card:nth-child(4){animation-delay:.21s}
+.sucursales-v2 .card:nth-child(5){animation-delay:.28s}
+.sucursales-v2 .card:nth-child(6){animation-delay:.35s}
+.sucursales-v2 .card:nth-child(7){animation-delay:.42s}
+.sucursales-v2 .card:nth-child(8){animation-delay:.49s}
+@keyframes suc-up{to{opacity:1;transform:translateY(0)}}
+.sucursales-v2 .card:hover{transform:translateY(-4px);border-color:rgba(121,185,67,.5);box-shadow:0 18px 44px rgba(16,32,80,.16)}
+.sucursales-v2 .card.flash{border-color:var(--verde);box-shadow:0 0 0 3px rgba(121,185,67,.35)}
+.sucursales-v2 .card .ph{position:relative;aspect-ratio:16/7.6;overflow:hidden}
+.sucursales-v2 .card .ph img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease}
+.sucursales-v2 .card:hover .ph img{transform:scale(1.05)}
+.sucursales-v2 .card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(8,14,36,.72) 0%,transparent 45%)}
+.sucursales-v2 .badge-dep{
+  position:absolute;left:14px;bottom:12px;z-index:2;
+  font-family:var(--font-m);font-size:.64rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:#dfeaff;background:rgba(10,20,52,.68);backdrop-filter:blur(6px);
+  border:1px solid rgba(160,185,245,.3);border-radius:7px;padding:5px 10px;
+}
+.sucursales-v2 .badge-mz{
+  position:absolute;right:14px;top:12px;z-index:2;
+  font-family:var(--font-m);font-size:.63rem;font-weight:600;letter-spacing:.18em;
+  color:#fff;background:var(--rojo);border-radius:7px;padding:6px 11px;
+  box-shadow:0 6px 18px rgba(208,32,47,.45);
+}
+.sucursales-v2 .card .body{padding:18px 20px 20px}
+.sucursales-v2 .card h3{color:var(--tinta);font-family:var(--font-d);font-size:1.28rem;font-weight:800;font-stretch:112%;text-transform:uppercase;letter-spacing:.005em}
+.sucursales-v2 .card .city{color:var(--tinta3);font-size:.86rem;margin-top:3px}
+.sucursales-v2 .ruta-chip{
+  display:inline-flex;align-items:center;gap:8px;margin-top:13px;
+  font-family:var(--font-m);font-size:.7rem;font-weight:600;letter-spacing:.1em;
+  color:var(--verde-osc);border:1.5px solid rgba(121,185,67,.55);border-radius:8px;padding:6px 11px;
+  background:rgba(121,185,67,.10);
+}
+.sucursales-v2 .ruta-chip::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--verde);transform:rotate(45deg)}
+.sucursales-v2 .card .dir{margin-top:11px;font-size:.9rem;line-height:1.55;color:var(--tinta2)}
+.sucursales-v2 .card .foot{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}
+.sucursales-v2 .btn-go{
+  font-family:var(--font-m);font-size:.74rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:#0b1a08;background:var(--verde);text-decoration:none;border-radius:10px;padding:11px 17px;
+  transition:background .2s,transform .2s;display:inline-flex;align-items:center;gap:8px;
+}
+.sucursales-v2 .btn-go:hover{background:var(--verde-claro);transform:translateX(2px)}
+.sucursales-v2 .card .dep-min{font-family:var(--font-m);font-size:.66rem;letter-spacing:.14em;color:var(--tinta3);text-transform:uppercase}
+
+/* estado sin sucursal */
+.sucursales-v2 .empty{
+  border:1.5px dashed rgba(18,38,92,.30);border-radius:var(--radius);
+  padding:34px 30px;text-align:left;animation:suc-up .4s forwards;opacity:0;
+}
+.sucursales-v2 .empty h3{color:var(--tinta);font-family:var(--font-d);font-size:1.25rem;font-weight:800;font-stretch:112%;text-transform:uppercase}
+.sucursales-v2 .empty p{margin-top:10px;color:var(--tinta2);line-height:1.6;font-size:.94rem}
+.sucursales-v2 .empty .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.sucursales-v2 .btn-line{
+  font-family:var(--font-m);font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tinta2);background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:11px 17px;cursor:pointer;transition:all .2s;
+}
+.sucursales-v2 .btn-line:hover{border-color:var(--verde);color:var(--verde-osc)}
+.sucursales-v2 .btn-line.solid{background:var(--verde);border-color:var(--verde);color:#0b1a08}
+.sucursales-v2 .btn-line.solid:hover{background:var(--verde-claro)}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .sucursales-v2 .main{grid-template-columns:1fr}
+  .sucursales-v2 .map-col{position:static;max-width:560px;margin:0 auto;width:100%}
+  .sucursales-v2 .hero{text-align:left}
+  .sucursales-v2 .stats{gap:0}
+  .sucursales-v2 .stat{padding:16px 22px 16px 0;margin-right:22px}
+  .sucursales-v2 .dep-label{font-size:11px}
+  .sucursales-v2 .dep-label.act{font-size:13.5px}
+  .sucursales-v2 .dep-label .num{font-size:15.5px}
+  .sucursales-v2 .legend{gap:12px}
+}
+@media (max-width:560px){
+  .sucursales-v2 .hero{padding-top:30px}
+  .sucursales-v2 h1{font-size:clamp(2.2rem,11vw,2.9rem)}
+  .sucursales-v2 .stat{padding:12px 14px 12px 0;margin-right:14px}
+  .sucursales-v2 .stat .n{font-size:1.5rem}
+  .sucursales-v2 .chips{gap:7px}
+  .sucursales-v2 .chip{padding:7px 12px;font-size:.68rem}
+  .sucursales-v2 .card .ph{aspect-ratio:16/9}
+}
+@media (prefers-reduced-motion:reduce){
+  .sucursales-v2 *,.sucursales-v2 *::before,.sucursales-v2 *::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  .sucursales-v2 .card{opacity:1;transform:none}
+  .sucursales-v2 .empty{opacity:1}
+}

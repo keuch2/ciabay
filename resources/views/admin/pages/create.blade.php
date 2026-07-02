@@ -25,6 +25,7 @@
                     <option value="">Por defecto (bloques)</option>
                     <option value="contact" {{ old('template') === 'contact' ? 'selected' : '' }}>Contacto</option>
                     <option value="store" {{ old('template') === 'store' ? 'selected' : '' }}>Tienda</option>
+                    <option value="sucursales" {{ old('template') === 'sucursales' ? 'selected' : '' }}>Sucursales (mapa interactivo)</option>
                 </select>
             </div>
 

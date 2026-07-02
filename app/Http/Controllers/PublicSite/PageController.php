@@ -21,11 +21,15 @@ class PageController extends Controller
 
         $customCss = $page->custom_css;
         $customJs = $page->custom_js;
+        $metaTitle = $page->meta_title;
+        $metaDescription = $page->meta_description;
+
+        $data = compact('page', 'isDraft', 'customCss', 'customJs', 'metaTitle', 'metaDescription');
 
         if ($page->template) {
-            return view('public.' . $page->template, compact('page', 'isDraft', 'customCss', 'customJs'));
+            return view('public.' . $page->template, $data);
         }
 
-        return view('public.page', compact('page', 'isDraft', 'customCss', 'customJs'));
+        return view('public.page', $data);
     }
 }
