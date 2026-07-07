@@ -21,6 +21,49 @@ class SamplePagesSeeder extends Seeder
         $this->seedPostventa();
         $this->seedContacto();
         $this->seedTiendaOnline();
+        $this->seedRepuestos();
+        $this->seedTrabajaEnCiabay();
+        $this->seedCiabayEnCampo();
+    }
+
+    /**
+     * Páginas que renderizan exclusivamente con plantilla hard-coded
+     * (sin bloques): Repuestos, Trabaja en Ciabay y Ciabay en Campo.
+     */
+    private function seedRepuestos(): void
+    {
+        $this->page('repuestos', [
+            'title' => 'Repuestos',
+            'template' => 'repuestos',
+            'status' => 'published',
+            'meta_title' => 'Repuestos | CIABAY — Repuestos originales Case IH, Akcela, CNH, Timken y discos en Paraguay',
+            'meta_description' => 'Repuestos originales Case IH, lubricantes Akcela, CNH Genuine Parts, rodamientos Timken y discos de siembra. Disponibilidad inmediata en 8 sucursales.',
+            'sort_order' => 11,
+        ]);
+    }
+
+    private function seedTrabajaEnCiabay(): void
+    {
+        $this->page('trabaja-en-ciabay', [
+            'title' => 'Trabaja en Ciabay',
+            'template' => 'trabaja-en-ciabay',
+            'status' => 'published',
+            'meta_title' => 'Trabajá en CIABAY — Sé parte de la familia',
+            'meta_description' => 'En CIABAY el que entra, crece. Conocé las historias de nuestra gente y sumate a la familia CIABAY.',
+            'sort_order' => 12,
+        ]);
+    }
+
+    private function seedCiabayEnCampo(): void
+    {
+        $this->page('ciabay-en-campo', [
+            'title' => 'Ciabay en Campo',
+            'template' => 'ciabay-en-campo',
+            'status' => 'published',
+            'meta_title' => 'CIABAY en Campo — Días de campo, demostraciones y capacitaciones',
+            'meta_description' => 'Días de campo, demostraciones en vivo, capacitaciones y viajes a fábrica: así acompaña CIABAY al productor paraguayo, donde las cosas realmente pasan.',
+            'sort_order' => 13,
+        ]);
     }
 
     private function page(string $slug, array $attributes): Page
@@ -43,11 +86,15 @@ class SamplePagesSeeder extends Seeder
 
     private function seedHomepage(): void
     {
+        // Renderiza con la plantilla hard-coded del nuevo home
+        // (resources/views/public/inicio.blade.php); los bloques quedan como
+        // respaldo y se usan si se vuelve a "Por defecto (bloques)".
         $page = $this->page('inicio', [
             'title' => 'Inicio',
+            'template' => 'inicio',
             'is_homepage' => true,
             'status' => 'published',
-            'meta_title' => 'Ciabay - Agricultura en buenas manos | Maquinaria Agrícola Case IH Paraguay',
+            'meta_title' => 'CIABAY — Agricultura en buenas manos',
             'meta_description' => 'Distribuidores oficiales de maquinaria agrícola Case IH en Paraguay. Más de 31 años de experiencia, 8 sucursales y 300+ colaboradores.',
             'sort_order' => 0,
         ]);
@@ -99,11 +146,13 @@ class SamplePagesSeeder extends Seeder
 
     private function seedHistoria(): void
     {
+        // Renderiza con la plantilla hard-coded del nuevo diseño de Historia.
         $page = $this->page('historia', [
             'title' => 'Historia',
+            'template' => 'historia',
             'status' => 'published',
-            'meta_title' => 'Historia de Ciabay | Más de 30 años de trayectoria',
-            'meta_description' => 'Conocé la historia de Ciabay: agricultura en buenas manos desde 1995, con el productor paraguayo.',
+            'meta_title' => 'Historia — CIABAY · Agricultura en buenas manos',
+            'meta_description' => 'Conocé la historia de CIABAY: agricultura en buenas manos desde 1995, con el productor paraguayo.',
             'sort_order' => 1,
         ]);
 

@@ -27,7 +27,17 @@ class HomeController extends Controller
 
         $customCss = $page?->custom_css;
         $customJs = $page?->custom_js;
+        $metaTitle = $page?->meta_title;
+        $metaDescription = $page?->meta_description;
 
-        return view('public.home', compact('page', 'isDraft', 'customCss', 'customJs'));
+        $data = compact('page', 'isDraft', 'customCss', 'customJs', 'metaTitle', 'metaDescription');
+
+        // Igual que el catch-all PageController: una plantilla asignada a la
+        // página homepage reemplaza la vista de bloques (revertir = template null).
+        if ($page && $page->template) {
+            return view('public.' . $page->template, $data);
+        }
+
+        return view('public.home', $data);
     }
 }
