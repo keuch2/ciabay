@@ -24,11 +24,12 @@ class SamplePagesSeeder extends Seeder
         $this->seedRepuestos();
         $this->seedTrabajaEnCiabay();
         $this->seedCiabayEnCampo();
+        $this->seedNidera();
     }
 
     /**
      * Páginas que renderizan exclusivamente con plantilla hard-coded
-     * (sin bloques): Repuestos, Trabaja en Ciabay y Ciabay en Campo.
+     * (sin bloques): Repuestos, Trabaja en Ciabay, Ciabay en Campo y Nidera Maíz.
      */
     private function seedRepuestos(): void
     {
@@ -63,6 +64,18 @@ class SamplePagesSeeder extends Seeder
             'meta_title' => 'CIABAY en Campo — Días de campo, demostraciones y capacitaciones',
             'meta_description' => 'Días de campo, demostraciones en vivo, capacitaciones y viajes a fábrica: así acompaña CIABAY al productor paraguayo, donde las cosas realmente pasan.',
             'sort_order' => 13,
+        ]);
+    }
+
+    private function seedNidera(): void
+    {
+        $this->page('nidera', [
+            'title' => 'Nidera Maíz',
+            'template' => 'nidera',
+            'status' => 'published',
+            'meta_title' => 'Nidera Maíz — CIABAY | Genética que rinde',
+            'meta_description' => 'La genética de maíz Nidera llega al campo paraguayo de la mano de CIABAY: híbridos de alto potencial de rinde, sanidad de planta y estabilidad probada parcela por parcela.',
+            'sort_order' => 14,
         ]);
     }
 

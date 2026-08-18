@@ -31,6 +31,7 @@
                     <option value="historia" {{ old('template') === 'historia' ? 'selected' : '' }}>Historia (nuevo diseño)</option>
                     <option value="trabaja-en-ciabay" {{ old('template') === 'trabaja-en-ciabay' ? 'selected' : '' }}>Trabaja en Ciabay (nuevo diseño)</option>
                     <option value="ciabay-en-campo" {{ old('template') === 'ciabay-en-campo' ? 'selected' : '' }}>Ciabay en Campo (nuevo diseño)</option>
+                    <option value="nidera" {{ old('template') === 'nidera' ? 'selected' : '' }}>Nidera Maíz (nuevo diseño)</option>
                 </select>
             </div>
 
