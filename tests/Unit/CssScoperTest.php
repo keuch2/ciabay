@@ -89,6 +89,23 @@ class CssScoperTest extends TestCase
         $this->assertStringContainsString('.html-import .abs{position:absolute;top:0}', $out);
     }
 
+    public function test_font_face_with_data_uri_survives_intact(): void
+    {
+        $css = "@font-face{font-family:'Manrope';src:url(data:font/woff2;base64,d09GMgABCD==) format('woff2');font-weight:400}";
+        $out = $this->scope($css . '.x{margin:0}');
+
+        $this->assertStringContainsString($css, $out);
+        $this->assertStringContainsString('.html-import .x{margin:0}', $out);
+    }
+
+    public function test_semicolon_inside_url_does_not_split_rules(): void
+    {
+        $out = $this->scope('.a{background:url("data:image/svg+xml;utf8,<svg/>");color:red}.b{margin:0}');
+
+        $this->assertStringContainsString('.html-import .a{background:url("data:image/svg+xml;utf8,<svg/>");color:red}', $out);
+        $this->assertStringContainsString('.html-import .b{margin:0}', $out);
+    }
+
     public function test_comments_and_selector_lists(): void
     {
         $out = $this->scope("/* intro */\nh1, h2 ,.big{margin:0}\n/* fin */");

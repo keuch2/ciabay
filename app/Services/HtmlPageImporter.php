@@ -7,6 +7,7 @@ use App\Models\Page;
 use App\Models\PageImport;
 use App\Services\HtmlImport\CssScoper;
 use App\Services\HtmlImport\DataUriExtractor;
+use App\Services\HtmlImport\HtmlBalancer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -68,6 +69,11 @@ class HtmlPageImporter
 
         $bodyClass = $this->firstMatch('/class=["\']([^"\']*)["\']/i', $bodyAttrs);
 
+        // los <style> del body ya fueron recolectados arriba (van scopeados a
+        // page.css); acá se quitan del markup para que no queden duplicados
+        // y sin scope
+        [$body] = $this->extractTagBlocks($body, 'style', removeFromHtml: true);
+
         // scripts inline del body (los <script src> externos quedan en el markup)
         [$body, $scriptBlocks] = $this->extractTagBlocks($body, 'script', removeFromHtml: true, skipWithSrc: true);
         $scripts = array_map('trim', array_column($scriptBlocks, 'content'));
@@ -75,6 +81,13 @@ class HtmlPageImporter
         // --- media embebida ----------------------------------------------
         $extractor = new DataUriExtractor();
         $body = $extractor->extract($body, PageImport::ASSET_PLACEHOLDER);
+
+        // reparar tags desbalanceados: un </div> de más cerraría el wrapper
+        // .html-import a mitad de página (y el CSS scopeado dejaría de aplicar
+        // de ahí en adelante); una apertura sin cerrar se tragaría el cierre
+        // del wrapper
+        $balancer = new HtmlBalancer();
+        $body = $balancer->balance($body);
         // en el CSS la referencia es relativa al propio page.css (media/ es
         // hermana del archivo), así el CSS queda estático y cacheable
         $css = $extractor->extract($css, 'media/');
@@ -106,7 +119,7 @@ class HtmlPageImporter
                 $disk->put($dir . '/media/' . $file, $content);
             }
 
-            return DB::transaction(function () use ($page, $dir, $extractor, $originalFilename, $originalSize, $checksum, $body, $wrappedJs, $detectedTitle, $detectedMeta, $googleFonts, $bodyClass) {
+            return DB::transaction(function () use ($page, $dir, $extractor, $balancer, $originalFilename, $originalSize, $checksum, $body, $wrappedJs, $detectedTitle, $detectedMeta, $googleFonts, $bodyClass) {
                 $import = PageImport::updateOrCreate(['page_id' => $page->id], [
                     'original_filename' => $originalFilename,
                     'original_size' => $originalSize,
@@ -120,7 +133,11 @@ class HtmlPageImporter
                         'css_path' => $dir . '/page.css',
                         'body_class' => $bodyClass ?: null,
                         'media' => $extractor->manifest(),
-                        'stats' => ['media_count' => count($extractor->manifest())],
+                        'stats' => [
+                            'media_count' => count($extractor->manifest()),
+                            'dropped_close_tags' => $balancer->droppedCloses(),
+                            'appended_close_tags' => $balancer->appendedCloses(),
+                        ],
                     ],
                 ]);
 

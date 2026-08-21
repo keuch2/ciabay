@@ -72,6 +72,12 @@ class CssScoper
                 continue;
             }
 
+            if (str_starts_with($prelude, '@font-face')) {
+                // su interior son declaraciones, no reglas: va verbatim
+                $out[] = $indent . '@font-face{' . $body . '}';
+                continue;
+            }
+
             if (str_starts_with($prelude, '@')) {
                 // @media / @supports: scopear el interior recursivamente
                 $inner = $this->scopeBlock($body, $indent . '  ', $keyframes);
@@ -187,16 +193,26 @@ class CssScoper
 
             $j = $i;
             $depth = 0;
+            $parens = 0;
             while ($j < $n) {
                 $c = $css[$j];
-                if ($c === '{') {
+                if ($c === '"' || $c === "'") {
+                    // string: saltar hasta la comilla de cierre
+                    $end = strpos($css, $c, $j + 1);
+                    $j = $end === false ? $n : $end;
+                } elseif ($c === '(') {
+                    $parens++;
+                } elseif ($c === ')') {
+                    $parens = max(0, $parens - 1);
+                } elseif ($c === '{') {
                     $depth++;
                 } elseif ($c === '}') {
                     $depth--;
                     if ($depth === 0) {
                         break;
                     }
-                } elseif ($c === ';' && $depth === 0) {
+                } elseif ($c === ';' && $depth === 0 && $parens === 0) {
+                    // un ; dentro de url(data:...;base64,...) no separa reglas
                     break;
                 }
                 $j++;
