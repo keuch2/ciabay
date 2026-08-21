@@ -41,6 +41,8 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
     Route::put('pages/{page}/blocks/{block}', [Admin\PageController::class, 'updateBlock'])->name('pages.blocks.update');
     Route::delete('pages/{page}/blocks/{block}', [Admin\PageController::class, 'destroyBlock'])->name('pages.blocks.destroy');
     Route::post('pages/{page}/blocks/reorder', [Admin\PageController::class, 'reorderBlocks'])->name('pages.blocks.reorder');
+    Route::post('pages/{page}/import-html', [Admin\PageImportController::class, 'store'])->name('pages.import-html.store');
+    Route::delete('pages/{page}/import-html', [Admin\PageImportController::class, 'destroy'])->name('pages.import-html.destroy');
 
     // Navigation
     Route::get('navigation', [Admin\NavigationController::class, 'index'])->name('navigation.index');

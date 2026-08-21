@@ -21,19 +21,8 @@
 
             <div>
                 <label for="template" class="block text-sm font-medium text-gray-700 mb-1">Template (opcional)</label>
-                <select name="template" id="template" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">Por defecto (bloques)</option>
-                    <option value="contact" {{ old('template') === 'contact' ? 'selected' : '' }}>Contacto</option>
-                    <option value="store" {{ old('template') === 'store' ? 'selected' : '' }}>Tienda</option>
-                    <option value="sucursales" {{ old('template') === 'sucursales' ? 'selected' : '' }}>Sucursales (mapa interactivo)</option>
-                    <option value="inicio" {{ old('template') === 'inicio' ? 'selected' : '' }}>Inicio (nuevo diseño)</option>
-                    <option value="repuestos" {{ old('template') === 'repuestos' ? 'selected' : '' }}>Repuestos (nuevo diseño)</option>
-                    <option value="historia" {{ old('template') === 'historia' ? 'selected' : '' }}>Historia (nuevo diseño)</option>
-                    <option value="trabaja-en-ciabay" {{ old('template') === 'trabaja-en-ciabay' ? 'selected' : '' }}>Trabaja en Ciabay (nuevo diseño)</option>
-                    <option value="ciabay-en-campo" {{ old('template') === 'ciabay-en-campo' ? 'selected' : '' }}>Ciabay en Campo (nuevo diseño)</option>
-                    <option value="nidera" {{ old('template') === 'nidera' ? 'selected' : '' }}>Nidera Maíz (nuevo diseño)</option>
-                    <option value="vence-tudo" {{ old('template') === 'vence-tudo' ? 'selected' : '' }}>Vence Tudo (nuevo diseño)</option>
-                </select>
+                @include('admin.pages.partials.template-select', ['selected' => old('template')])
+                <p class="mt-1 text-xs text-gray-500">Para "HTML importado": creá la página y subí la maqueta desde el editor.</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4">

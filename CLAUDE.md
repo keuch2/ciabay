@@ -97,6 +97,15 @@ Admin page editor at `/admin/pages/{page}/edit` uses Alpine.js form partials per
 
 **Important**: the block editor JS generates endpoint URLs via Laravel's `route()` / `url()` helpers at render time. **Never hardcode absolute paths** like `/admin/...` in JS — they break when the app is served under a path prefix (e.g. `/ciabay-laravel/public/`).
 
+### HTML Mockup Importer (template `html-import`)
+Upload a standalone HTML mockup (single file with inline `<style>`, `<script>` and base64 media — the `nuevo_*.html` style) from the page editor's "Maqueta HTML" card and the CMS generates the page. Automates the manual pipeline used for the hard-coded templates (which remain untouched).
+- `app/Services/HtmlPageImporter.php` (+ `HtmlImport/CssScoper`, `HtmlImport/DataUriExtractor`): extracts base64 media (dedup by content hash), scopes CSS under `.html-import` (`:root`/`body` → wrapper, `body.clase X` → `body.clase .html-import X`, keyframes prefixed `hi-*`, fixed blocks with z-index < 1000 get +1000, `sticky; top:0` → `top:var(--site-header-h,0px)`), wraps inline JS in one IIFE. String/`strpos`-based parsing on purpose: preserves markup byte-for-byte and avoids PCRE backtrack limits on multi-MB scripts.
+- Storage: processed body/JS in the `page_imports` table (MEDIUMTEXT); CSS + media as files in `storage/app/public/imported-pages/{page_id}/`. Deleting the page or the import cleans the directory (hook in `Page::booted`).
+- Render: `resources/views/public/html-import.blade.php` — emits the stored HTML with `{!! !!}` (**never compiled as Blade**); `__PAGE_ASSETS__/` placeholders resolve via `asset()` at render time. A small runtime sets `--site-header-h` and re-applies the mockup's `<body>` class.
+- Template select options now live in `Page::TEMPLATES` (partial `admin/pages/partials/template-select.blade.php`).
+- CLI alternative / production fallback: `php artisan page:import-html {id|slug} {ruta.html}`.
+- Upload limits: `public/.user.ini` (FPM/LiteSpeed) and `public/.htaccess` (mod_php) raise them to 64M, but **`php artisan serve` ignores both** — for local admin uploads run `php -d upload_max_filesize=64M -d post_max_size=68M artisan serve --port=8082`, or use the artisan command.
+
 ### E-Commerce Flow (Tienda Online)
 `Product` → `Order` → WhatsApp redirect. `POST /tienda-online/pedido` creates an `Order`, returns a WhatsApp URL. No payment gateway.
 - Public list: `/tienda-online` (renders through a page with blocks: `redcase-hero`, `redcase-products`, `redcase-cta`)

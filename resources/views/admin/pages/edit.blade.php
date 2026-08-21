@@ -33,19 +33,7 @@
 
                 <div>
                     <label for="template" class="block text-sm font-medium text-gray-700 mb-1">Template</label>
-                    <select name="template" id="template" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                        <option value="">Por defecto (bloques)</option>
-                        <option value="contact" {{ old('template', $page->template) === 'contact' ? 'selected' : '' }}>Contacto</option>
-                        <option value="store" {{ old('template', $page->template) === 'store' ? 'selected' : '' }}>Tienda</option>
-                        <option value="sucursales" {{ old('template', $page->template) === 'sucursales' ? 'selected' : '' }}>Sucursales (mapa interactivo)</option>
-                        <option value="inicio" {{ old('template', $page->template) === 'inicio' ? 'selected' : '' }}>Inicio (nuevo diseño)</option>
-                        <option value="repuestos" {{ old('template', $page->template) === 'repuestos' ? 'selected' : '' }}>Repuestos (nuevo diseño)</option>
-                        <option value="historia" {{ old('template', $page->template) === 'historia' ? 'selected' : '' }}>Historia (nuevo diseño)</option>
-                        <option value="trabaja-en-ciabay" {{ old('template', $page->template) === 'trabaja-en-ciabay' ? 'selected' : '' }}>Trabaja en Ciabay (nuevo diseño)</option>
-                        <option value="ciabay-en-campo" {{ old('template', $page->template) === 'ciabay-en-campo' ? 'selected' : '' }}>Ciabay en Campo (nuevo diseño)</option>
-                        <option value="nidera" {{ old('template', $page->template) === 'nidera' ? 'selected' : '' }}>Nidera Maíz (nuevo diseño)</option>
-                        <option value="vence-tudo" {{ old('template', $page->template) === 'vence-tudo' ? 'selected' : '' }}>Vence Tudo (nuevo diseño)</option>
-                    </select>
+                    @include('admin.pages.partials.template-select', ['selected' => old('template', $page->template)])
                 </div>
 
                 <div>
@@ -101,6 +89,98 @@
                 </button>
             </div>
         </form>
+
+        <!-- Maqueta HTML (import) -->
+        {{-- [x-cloak] no está en el Tailwind compilado (gotcha #3) --}}
+        <style>[x-cloak]{display:none!important}</style>
+        <div class="bg-white rounded-xl shadow-sm p-5 mt-6 space-y-3"
+             x-data="htmlImportCard()">
+            <h3 class="font-semibold text-gray-800 text-sm uppercase tracking-wider">Maqueta HTML</h3>
+
+            @if($page->htmlImport)
+                <div class="text-sm text-gray-700 space-y-1">
+                    <p><span class="font-medium">Archivo:</span> {{ $page->htmlImport->original_filename }}</p>
+                    <p><span class="font-medium">Importado:</span> {{ $page->htmlImport->updated_at->format('d/m/Y H:i') }}</p>
+                    <p><span class="font-medium">Media:</span> {{ count($page->htmlImport->manifest['media'] ?? []) }} archivos ·
+                       {{ number_format($page->htmlImport->original_size / 1048576, 1) }} MB originales</p>
+                </div>
+            @else
+                <p class="text-sm text-gray-500">
+                    Subí una maqueta HTML (archivo único con estilos, scripts e imágenes embebidas)
+                    y esta página pasará a renderizarla. La plantilla cambia sola a "HTML importado".
+                </p>
+            @endif
+
+            <input type="file" accept=".html,.htm" x-ref="file" class="block w-full text-sm text-gray-600
+                   file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100">
+
+            <div class="flex gap-2">
+                <button type="button" @click="upload()" :disabled="busy"
+                        class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
+                    <span x-show="!busy">{{ $page->htmlImport ? 'Re-subir maqueta' : 'Subir maqueta' }}</span>
+                    <span x-show="busy" x-cloak>Procesando maqueta…</span>
+                </button>
+                @if($page->htmlImport)
+                    <button type="button" @click="removeImport()" :disabled="busy"
+                            class="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors disabled:opacity-50">
+                        Eliminar
+                    </button>
+                @endif
+            </div>
+
+            <p x-show="error" x-text="error" x-cloak class="text-sm text-red-600"></p>
+            <p class="text-xs text-gray-500">
+                El archivo HTML es la fuente de verdad: para editar la página, modificá el HTML y volvé a subirlo.
+            </p>
+        </div>
+
+        <script>
+            function htmlImportCard() {
+                return {
+                    busy: false,
+                    error: '',
+                    async upload() {
+                        const file = this.$refs.file.files[0];
+                        if (!file) { this.error = 'Seleccioná un archivo HTML.'; return; }
+                        this.busy = true; this.error = '';
+                        try {
+                            const fd = new FormData();
+                            fd.append('html_file', file);
+                            const r = await fetch(@json(route('admin.pages.import-html.store', $page)), {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+                                body: fd,
+                            });
+                            if (r.status === 413) { this.error = 'El archivo supera el límite de subida del servidor.'; return; }
+                            const data = await r.json().catch(() => null);
+                            if (!r.ok || !data || !data.success) {
+                                this.error = (data && (data.message || Object.values(data.errors || {}).flat()[0])) || 'La importación falló.';
+                                return;
+                            }
+                            location.reload();
+                        } catch (e) {
+                            this.error = 'Error de red al subir el archivo.';
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+                    async removeImport() {
+                        if (!confirm('¿Eliminar el HTML importado? La página volverá a la plantilla de bloques.')) return;
+                        this.busy = true; this.error = '';
+                        try {
+                            const r = await fetch(@json(route('admin.pages.import-html.destroy', $page)), {
+                                method: 'DELETE',
+                                headers: { 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+                            });
+                            if (!r.ok) { this.error = 'No se pudo eliminar el import.'; return; }
+                            location.reload();
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+                };
+            }
+        </script>
     </div>
 
     <!-- Block Editor (main) -->
