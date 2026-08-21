@@ -25,6 +25,7 @@ class SamplePagesSeeder extends Seeder
         $this->seedTrabajaEnCiabay();
         $this->seedCiabayEnCampo();
         $this->seedNidera();
+        $this->seedVenceTudo();
     }
 
     /**
@@ -76,6 +77,18 @@ class SamplePagesSeeder extends Seeder
             'meta_title' => 'Nidera Maíz — CIABAY | Genética que rinde',
             'meta_description' => 'La genética de maíz Nidera llega al campo paraguayo de la mano de CIABAY: híbridos de alto potencial de rinde, sanidad de planta y estabilidad probada parcela por parcela.',
             'sort_order' => 14,
+        ]);
+    }
+
+    private function seedVenceTudo(): void
+    {
+        $this->page('vence-tudo', [
+            'title' => 'Vence Tudo',
+            'template' => 'vence-tudo',
+            'status' => 'published',
+            'meta_title' => 'Vence Tudo · CIABAY',
+            'meta_description' => 'Línea completa Vence Tudo en Paraguay de la mano de CIABAY: sembradoras, cabezales de maíz Bocuda, tolvas graneleras y clasificadores de semilla. Atención por WhatsApp las 24 horas.',
+            'sort_order' => 15,
         ]);
     }
 

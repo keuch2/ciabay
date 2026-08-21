@@ -32,6 +32,7 @@
                     <option value="trabaja-en-ciabay" {{ old('template') === 'trabaja-en-ciabay' ? 'selected' : '' }}>Trabaja en Ciabay (nuevo diseño)</option>
                     <option value="ciabay-en-campo" {{ old('template') === 'ciabay-en-campo' ? 'selected' : '' }}>Ciabay en Campo (nuevo diseño)</option>
                     <option value="nidera" {{ old('template') === 'nidera' ? 'selected' : '' }}>Nidera Maíz (nuevo diseño)</option>
+                    <option value="vence-tudo" {{ old('template') === 'vence-tudo' ? 'selected' : '' }}>Vence Tudo (nuevo diseño)</option>
                 </select>
             </div>
 

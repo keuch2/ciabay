@@ -44,6 +44,7 @@
                         <option value="trabaja-en-ciabay" {{ old('template', $page->template) === 'trabaja-en-ciabay' ? 'selected' : '' }}>Trabaja en Ciabay (nuevo diseño)</option>
                         <option value="ciabay-en-campo" {{ old('template', $page->template) === 'ciabay-en-campo' ? 'selected' : '' }}>Ciabay en Campo (nuevo diseño)</option>
                         <option value="nidera" {{ old('template', $page->template) === 'nidera' ? 'selected' : '' }}>Nidera Maíz (nuevo diseño)</option>
+                        <option value="vence-tudo" {{ old('template', $page->template) === 'vence-tudo' ? 'selected' : '' }}>Vence Tudo (nuevo diseño)</option>
                     </select>
                 </div>
 
