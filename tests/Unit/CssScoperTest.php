@@ -106,6 +106,26 @@ class CssScoperTest extends TestCase
         $this->assertStringContainsString('.html-import .b{margin:0}', $out);
     }
 
+    public function test_fullscreen_app_body_height_becomes_viewport_calc(): void
+    {
+        // body{height:100%;overflow:hidden} = maqueta app de pantalla completa
+        $out = $this->scope('body{margin:0;height:100%;overflow:hidden}.stage{height:100%}');
+
+        $this->assertStringContainsString('height:calc(100vh - var(--site-header-h,0px));height:calc(100svh - var(--site-header-h,0px))', $out);
+        $this->assertStringNotContainsString('.html-import{margin:0;height:100%;', $out);
+        // los porcentajes internos quedan como estaban (resuelven contra el wrapper)
+        $this->assertStringContainsString('.html-import .stage{height:100%}', $out);
+    }
+
+    public function test_plain_body_height_100_is_left_alone(): void
+    {
+        // sin overflow:hidden computa a auto y es inofensivo (maqueta de scroll normal)
+        $out = $this->scope('body{height:100%;color:#000}.x{min-height:100%}');
+
+        $this->assertStringContainsString('.html-import{height:100%;color:#000}', $out);
+        $this->assertStringNotContainsString('svh', $out);
+    }
+
     public function test_comments_and_selector_lists(): void
     {
         $out = $this->scope("/* intro */\nh1, h2 ,.big{margin:0}\n/* fin */");

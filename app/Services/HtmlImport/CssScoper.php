@@ -146,6 +146,21 @@ class CssScoper
             // el wrapper ya lleva overflow:clip; un overflow-x:hidden heredado
             // de body/html rompería position:sticky interno
             $body = preg_replace('/overflow-x\s*:\s*hidden\s*;?/', '', $body);
+
+            // Maqueta "app de pantalla completa": body{height:100%;overflow:hidden}
+            // depende de la cadena html→body{height:100%}, que dentro del layout
+            // colapsa a auto (y los height:100% internos a 0). Se traduce a
+            // altura de viewport menos el header del sitio, así los porcentajes
+            // internos vuelven a resolver. Un height:100% suelto (sin
+            // overflow:hidden) se deja: computa a auto y es inofensivo en
+            // maquetas de scroll normal.
+            if (preg_match('/overflow\s*:\s*hidden/', $body) && preg_match('/(?<![\w-])height\s*:\s*100%/', $body)) {
+                $body = preg_replace(
+                    '/(?<![\w-])height\s*:\s*100%/',
+                    'height:calc(100vh - var(--site-header-h,0px));height:calc(100svh - var(--site-header-h,0px))',
+                    $body,
+                );
+            }
         }
 
         if (preg_match('/position\s*:\s*fixed/', $body)) {
