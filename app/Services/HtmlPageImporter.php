@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\HtmlImportException;
 use App\Models\Page;
 use App\Models\PageImport;
+use App\Models\PageImportVersion;
 use App\Services\HtmlImport\CssScoper;
 use App\Services\HtmlImport\DataUriExtractor;
 use App\Services\HtmlImport\HtmlBalancer;
@@ -40,6 +41,7 @@ class HtmlPageImporter
     {
         $originalSize = strlen($htmlContent);
         $checksum = sha1($htmlContent);
+        $originalContent = $htmlContent; // se archiva tal cual se subió
 
         $htmlContent = $this->ensureUtf8($htmlContent);
 
@@ -113,13 +115,27 @@ class HtmlPageImporter
         $dir = 'imported-pages/' . $page->id;
         $disk->deleteDirectory($dir);
 
+        // Historial: el archivo original se archiva en el disco privado
+        // (storage/app/private) y se descarga solo vía ruta admin. Si ya
+        // existe una versión con el mismo checksum se reutiliza su archivo.
+        $historyDisk = Storage::disk('local');
+        $historyPath = PageImportVersion::where('page_id', $page->id)
+            ->where('checksum', $checksum)->latest('id')->first()?->html_path;
+        $newHistoryFile = false;
+        if (! $historyPath) {
+            $historyPath = 'page-import-history/' . $page->id . '/' . now()->format('Ymd-His') . '-' . substr($checksum, 0, 8) . '.html';
+            $historyDisk->put($historyPath, $originalContent);
+            $newHistoryFile = true;
+        }
+        unset($originalContent);
+
         try {
             $disk->put($dir . '/page.css', $scopedCss);
             foreach ($extractor->files() as $file => $content) {
                 $disk->put($dir . '/media/' . $file, $content);
             }
 
-            return DB::transaction(function () use ($page, $dir, $extractor, $balancer, $originalFilename, $originalSize, $checksum, $body, $wrappedJs, $detectedTitle, $detectedMeta, $googleFonts, $bodyClass) {
+            return DB::transaction(function () use ($page, $dir, $extractor, $balancer, $originalFilename, $originalSize, $checksum, $historyPath, $body, $wrappedJs, $detectedTitle, $detectedMeta, $googleFonts, $bodyClass) {
                 $import = PageImport::updateOrCreate(['page_id' => $page->id], [
                     'original_filename' => $originalFilename,
                     'original_size' => $originalSize,
@@ -150,10 +166,27 @@ class HtmlPageImporter
                 }
                 $page->save();
 
+                // una entrada de historial por subida; subidas consecutivas
+                // del mismo archivo no duplican
+                $latestVersion = PageImportVersion::where('page_id', $page->id)->latest('id')->first();
+                if (! $latestVersion || $latestVersion->checksum !== $checksum) {
+                    PageImportVersion::create([
+                        'page_id' => $page->id,
+                        'user_id' => auth()->id(),
+                        'original_filename' => $originalFilename,
+                        'original_size' => $originalSize,
+                        'checksum' => $checksum,
+                        'html_path' => $historyPath,
+                    ]);
+                }
+
                 return $import;
             });
         } catch (Throwable $e) {
             $disk->deleteDirectory($dir);
+            if ($newHistoryFile) {
+                $historyDisk->delete($historyPath);
+            }
 
             if ($e instanceof HtmlImportException) {
                 throw $e;

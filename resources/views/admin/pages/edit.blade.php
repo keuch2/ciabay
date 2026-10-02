@@ -132,6 +132,35 @@
             <p class="text-xs text-gray-500">
                 El archivo HTML es la fuente de verdad: para editar la página, modificá el HTML y volvé a subirlo.
             </p>
+
+            @php($importVersions = $page->htmlImportVersions()->with('user')->limit(10)->get())
+            @if($importVersions->isNotEmpty())
+                <div class="pt-2 border-t border-gray-100">
+                    <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Historial de maquetas</h4>
+                    <ul class="space-y-1.5">
+                        @foreach($importVersions as $ix => $version)
+                            <li class="flex items-center gap-2 text-xs text-gray-600">
+                                <div class="flex-1 min-w-0">
+                                    <span class="block truncate font-medium text-gray-700" title="{{ $version->original_filename }}">{{ $version->original_filename }}</span>
+                                    <span class="text-gray-400">
+                                        {{ $version->created_at->format('d/m/Y H:i') }}
+                                        · {{ number_format($version->original_size / 1048576, 1) }} MB
+                                        @if($version->user) · {{ $version->user->name }} @endif
+                                        @if($ix === 0 && $page->htmlImport) · <span class="text-green-700 font-medium">actual</span> @endif
+                                    </span>
+                                </div>
+                                <a href="{{ route('admin.pages.import-html.versions.download', [$page, $version]) }}"
+                                   class="shrink-0 text-blue-600 hover:text-blue-800 font-medium">Descargar</a>
+                                @if($ix !== 0 || ! $page->htmlImport)
+                                    <button type="button" @click="restoreVersion(@js(route('admin.pages.import-html.versions.restore', [$page, $version])))"
+                                            :disabled="busy"
+                                            class="shrink-0 text-gray-500 hover:text-gray-800 font-medium disabled:opacity-50">Restaurar</button>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
         </div>
 
         <script>
@@ -160,6 +189,24 @@
                             location.reload();
                         } catch (e) {
                             this.error = 'Error de red al subir el archivo.';
+                        } finally {
+                            this.busy = false;
+                        }
+                    },
+                    async restoreVersion(url) {
+                        if (!confirm('¿Restaurar esta versión de la maqueta? Reemplaza el contenido actual de la página.')) return;
+                        this.busy = true; this.error = '';
+                        try {
+                            const r = await fetch(url, {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': @json(csrf_token()), 'Accept': 'application/json' },
+                            });
+                            const data = await r.json().catch(() => null);
+                            if (!r.ok || !data || !data.success) {
+                                this.error = (data && data.message) || 'No se pudo restaurar la versión.';
+                                return;
+                            }
+                            location.reload();
                         } finally {
                             this.busy = false;
                         }

@@ -51,6 +51,7 @@ class Page extends Model
         // storage; acá se borran los archivos generados por el importador.
         static::deleting(function (Page $page) {
             Storage::disk('public')->deleteDirectory('imported-pages/' . $page->id);
+            Storage::disk('local')->deleteDirectory('page-import-history/' . $page->id);
         });
     }
 
@@ -62,6 +63,11 @@ class Page extends Model
     public function htmlImport(): HasOne
     {
         return $this->hasOne(PageImport::class);
+    }
+
+    public function htmlImportVersions(): HasMany
+    {
+        return $this->hasMany(PageImportVersion::class)->latest('id');
     }
 
     public function seoMeta(): MorphOne

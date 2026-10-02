@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Exceptions\HtmlImportException;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Models\PageImportVersion;
 use App\Services\HtmlPageImporter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Subida / eliminación de la maqueta HTML de una página (template
@@ -48,6 +50,36 @@ class PageImportController extends Controller
     public function destroy(Page $page, HtmlPageImporter $importer)
     {
         $importer->remove($page);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Descarga el archivo HTML original tal cual se subió.
+     */
+    public function download(Page $page, PageImportVersion $version)
+    {
+        abort_unless($version->page_id === $page->id, 404);
+        abort_unless(Storage::disk('local')->exists($version->html_path), 404);
+
+        return Storage::disk('local')->download($version->html_path, $version->original_filename);
+    }
+
+    /**
+     * Re-importa una versión anterior del historial.
+     */
+    public function restore(Page $page, PageImportVersion $version, HtmlPageImporter $importer)
+    {
+        abort_unless($version->page_id === $page->id, 404);
+
+        $content = Storage::disk('local')->get($version->html_path);
+        abort_if($content === null, 404);
+
+        try {
+            $importer->import($page, $content, $version->original_filename);
+        } catch (\App\Exceptions\HtmlImportException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
 
         return response()->json(['success' => true]);
     }

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Exceptions\HtmlImportException;
 use App\Models\Page;
 use App\Models\PageImport;
+use App\Models\PageImportVersion;
 use App\Services\HtmlPageImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -125,9 +126,87 @@ HTML;
         $this->assertEmpty(Storage::disk('public')->allFiles("imported-pages/{$page->id}"));
     }
 
+    public function test_import_archives_original_and_records_version(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $page = Page::create(['title' => 'Prueba', 'slug' => 'prueba', 'status' => 'draft']);
+
+        app(HtmlPageImporter::class)->import($page, $this->fixture(), 'maqueta v1.html');
+
+        $version = PageImportVersion::sole();
+        $this->assertSame('maqueta v1.html', $version->original_filename);
+        $this->assertSame(sha1($this->fixture()), $version->checksum);
+        Storage::disk('local')->assertExists($version->html_path);
+        // el archivo archivado es byte a byte el original
+        $this->assertSame($this->fixture(), Storage::disk('local')->get($version->html_path));
+    }
+
+    public function test_reupload_same_file_does_not_duplicate_version(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $page = Page::create(['title' => 'Prueba', 'slug' => 'prueba', 'status' => 'draft']);
+        $importer = app(HtmlPageImporter::class);
+
+        $importer->import($page, $this->fixture(), 'v1.html');
+        $importer->import($page, $this->fixture(), 'v1 otra vez.html');
+        $this->assertSame(1, PageImportVersion::count());
+
+        $importer->import($page, '<html><body><p>otro</p></body></html>', 'v2.html');
+        $this->assertSame(2, PageImportVersion::count());
+
+        // volver a subir la v1: nueva entrada pero reutiliza el archivo archivado
+        $importer->import($page, $this->fixture(), 'v1 restaurada.html');
+        $this->assertSame(3, PageImportVersion::count());
+        $versions = PageImportVersion::orderBy('id')->get();
+        $this->assertSame($versions[0]->html_path, $versions[2]->html_path);
+        $this->assertSame(2, collect(Storage::disk('local')->allFiles())->count());
+    }
+
+    public function test_admin_can_download_original_html(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $user = \App\Models\User::factory()->create(['email_verified_at' => now()]);
+        $page = Page::create(['title' => 'Prueba', 'slug' => 'prueba', 'status' => 'draft']);
+        app(HtmlPageImporter::class)->import($page, $this->fixture(), 'maqueta.html');
+        $version = PageImportVersion::sole();
+
+        $response = $this->actingAs($user)->get(route('admin.pages.import-html.versions.download', [$page, $version]));
+
+        $response->assertOk();
+        $response->assertDownload('maqueta.html');
+
+        // una versión de otra página no se puede descargar por esta ruta
+        $otra = Page::create(['title' => 'Otra', 'slug' => 'otra', 'status' => 'draft']);
+        $this->actingAs($user)->get(route('admin.pages.import-html.versions.download', [$otra, $version]))->assertNotFound();
+    }
+
+    public function test_restore_reimports_an_older_version(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $user = \App\Models\User::factory()->create(['email_verified_at' => now()]);
+        $page = Page::create(['title' => 'Prueba', 'slug' => 'prueba', 'status' => 'draft']);
+        $importer = app(HtmlPageImporter::class);
+
+        $importer->import($page, $this->fixture(), 'v1.html');
+        $v1 = PageImportVersion::sole();
+        $importer->import($page, '<html><head><title>V2</title></head><body><p>v2</p></body></html>', 'v2.html');
+
+        $this->actingAs($user)
+            ->post(route('admin.pages.import-html.versions.restore', [$page, $v1]))
+            ->assertOk();
+
+        $this->assertSame('v1.html', $page->htmlImport()->first()->original_filename);
+        $this->assertStringContainsString('<h1>Hola</h1>', $page->htmlImport()->first()->body_html);
+    }
+
     public function test_deleting_page_removes_storage_directory(): void
     {
         Storage::fake('public');
+        Storage::fake('local');
         $page = Page::create(['title' => 'Prueba', 'slug' => 'prueba', 'status' => 'draft']);
         app(HtmlPageImporter::class)->import($page, $this->fixture(), 'maqueta.html');
         $id = $page->id;
@@ -135,6 +214,8 @@ HTML;
         $page->delete();
 
         $this->assertEmpty(Storage::disk('public')->allFiles("imported-pages/{$id}"));
+        $this->assertEmpty(Storage::disk('local')->allFiles("page-import-history/{$id}"));
         $this->assertSame(0, PageImport::count());
+        $this->assertSame(0, PageImportVersion::count());
     }
 }
