@@ -103,6 +103,12 @@
                     <p><span class="font-medium">Importado:</span> {{ $page->htmlImport->updated_at->format('d/m/Y H:i') }}</p>
                     <p><span class="font-medium">Media:</span> {{ count($page->htmlImport->manifest['media'] ?? []) }} archivos ·
                        {{ number_format($page->htmlImport->original_size / 1048576, 1) }} MB originales</p>
+                    <p>
+                        <a href="{{ route('admin.pages.import-html.export', $page) }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                            Descargar HTML (reconstruido)
+                        </a>
+                        <span class="text-gray-400">— el archivo original de cada subida está en el historial</span>
+                    </p>
                 </div>
             @else
                 <p class="text-sm text-gray-500">

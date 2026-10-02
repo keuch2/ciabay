@@ -6,6 +6,7 @@ use App\Exceptions\HtmlImportException;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use App\Models\PageImportVersion;
+use App\Services\HtmlImport\HtmlExporter;
 use App\Services\HtmlPageImporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -52,6 +53,29 @@ class PageImportController extends Controller
         $importer->remove($page);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Descarga un HTML standalone reconstruido desde el import procesado.
+     * Para páginas importadas antes del historial (sin archivo original
+     * archivado): renderiza igual y se puede editar y volver a subir.
+     */
+    public function export(Page $page, HtmlExporter $exporter)
+    {
+        $import = $page->htmlImport;
+        abort_unless($import, 404);
+
+        try {
+            $html = $exporter->export($import);
+        } catch (HtmlImportException $e) {
+            abort(404, $e->getMessage());
+        }
+
+        return response()->streamDownload(
+            fn () => print($html),
+            $page->slug . '-reconstruida.html',
+            ['Content-Type' => 'text/html; charset=utf-8'],
+        );
     }
 
     /**

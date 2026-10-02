@@ -43,6 +43,7 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
     Route::post('pages/{page}/blocks/reorder', [Admin\PageController::class, 'reorderBlocks'])->name('pages.blocks.reorder');
     Route::post('pages/{page}/import-html', [Admin\PageImportController::class, 'store'])->name('pages.import-html.store');
     Route::delete('pages/{page}/import-html', [Admin\PageImportController::class, 'destroy'])->name('pages.import-html.destroy');
+    Route::get('pages/{page}/import-html/export', [Admin\PageImportController::class, 'export'])->name('pages.import-html.export');
     Route::get('pages/{page}/import-html/versions/{version}/download', [Admin\PageImportController::class, 'download'])->name('pages.import-html.versions.download');
     Route::post('pages/{page}/import-html/versions/{version}/restore', [Admin\PageImportController::class, 'restore'])->name('pages.import-html.versions.restore');
 

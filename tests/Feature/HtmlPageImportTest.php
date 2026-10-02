@@ -203,6 +203,53 @@ HTML;
         $this->assertStringContainsString('<h1>Hola</h1>', $page->htmlImport()->first()->body_html);
     }
 
+    public function test_export_reconstructs_standalone_html(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $user = \App\Models\User::factory()->create(['email_verified_at' => now()]);
+        $page = Page::create(['title' => 'Prueba', 'slug' => 'prueba', 'status' => 'draft']);
+        app(HtmlPageImporter::class)->import($page, $this->fixture(), 'maqueta.html');
+
+        $response = $this->actingAs($user)->get(route('admin.pages.import-html.export', $page));
+
+        $response->assertOk();
+        $response->assertDownload('prueba-reconstruida.html');
+        $html = $response->streamedContent();
+
+        // media re-embebida, sin placeholders ni referencias a storage
+        $this->assertStringContainsString('data:image/png;base64,' . self::PNG_B64, $html);
+        $this->assertStringNotContainsString(PageImport::ASSET_PLACEHOLDER, $html);
+        $this->assertStringNotContainsString('media/', $html);
+        // estructura standalone: css scopeado inline, wrapper, js, clase del body
+        $this->assertStringContainsString('<div class="html-import">', $html);
+        $this->assertStringContainsString('<body class="modo-x">', $html);
+        $this->assertStringContainsString("console.log('uno');", $html);
+        $this->assertStringContainsString('<title>Página de Prueba</title>', $html);
+        $this->assertStringContainsString('html{--site-header-h:0px}', $html);
+    }
+
+    public function test_exported_html_can_be_reimported(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $page = Page::create(['title' => 'Prueba', 'slug' => 'prueba', 'status' => 'draft']);
+        $importer = app(HtmlPageImporter::class);
+        $import = $importer->import($page, $this->fixture(), 'maqueta.html');
+
+        $exported = app(\App\Services\HtmlImport\HtmlExporter::class)->export($import);
+
+        $otra = Page::create(['title' => 'Otra', 'slug' => 'otra', 'status' => 'draft']);
+        $reimport = $importer->import($otra, $exported, 'reconstruida.html');
+
+        $this->assertStringContainsString('<h1>Hola</h1>', $reimport->body_html);
+        $this->assertSame('modo-x', $reimport->manifest['body_class']);
+        $this->assertCount(1, $reimport->manifest['media']);
+        // la regla html{--site-header-h:0px} del export se descarta al re-scopear
+        $css = Storage::disk('public')->get("imported-pages/{$otra->id}/page.css");
+        $this->assertStringNotContainsString('--site-header-h:0px', $css);
+    }
+
     public function test_deleting_page_removes_storage_directory(): void
     {
         Storage::fake('public');
