@@ -103,12 +103,6 @@
                     <p><span class="font-medium">Importado:</span> {{ $page->htmlImport->updated_at->format('d/m/Y H:i') }}</p>
                     <p><span class="font-medium">Media:</span> {{ count($page->htmlImport->manifest['media'] ?? []) }} archivos ·
                        {{ number_format($page->htmlImport->original_size / 1048576, 1) }} MB originales</p>
-                    <p>
-                        <a href="{{ route('admin.pages.import-html.export', $page) }}" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Descargar HTML (reconstruido)
-                        </a>
-                        <span class="text-gray-400">— el archivo original de cada subida está en el historial</span>
-                    </p>
                 </div>
             @else
                 <p class="text-sm text-gray-500">
@@ -133,6 +127,17 @@
                     </button>
                 @endif
             </div>
+
+            @if($page->htmlImport)
+                <a href="{{ route('admin.pages.import-html.export', $page) }}"
+                   class="block w-full text-center bg-gray-100 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                    ⬇ Descargar HTML actual (reconstruido)
+                </a>
+                <p class="text-xs text-gray-400 -mt-1">
+                    Archivo único con imágenes embebidas, listo para editar y volver a subir.
+                    El original exacto de cada subida está en el historial.
+                </p>
+            @endif
 
             <p x-show="error" x-text="error" x-cloak class="text-sm text-red-600"></p>
             <p class="text-xs text-gray-500">
